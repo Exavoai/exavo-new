@@ -18,7 +18,7 @@ const Hero = () => {
   ];
 
   return (
-    <section className="relative overflow-hidden pt-32 pb-24 lg:pt-40 lg:pb-32">
+    <section className="relative overflow-hidden pt-20 sm:pt-32 pb-16 sm:pb-24 lg:pt-40 lg:pb-32">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5"></div>
       
@@ -30,17 +30,17 @@ const Hero = () => {
       <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-secondary/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
           {/* Left: Content */}
-          <div className="space-y-8 animate-fade-in">
-            <div className="space-y-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
+          <div className="space-y-6 sm:space-y-8 animate-fade-in">
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
                 {language === 'ar' 
                   ? 'تحليلات مدعومة بالذكاء الاصطناعي لأعمالك'
                   : 'AI-Powered Analytics for Your Business'}
               </h1>
               
-              <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
                 {language === 'ar'
                   ? 'حوّل بياناتك إلى رؤى قابلة للتنفيذ مع تحليلات الذكاء الاصطناعي فائقة السرعة. اتخذ قرارات أذكى وحقق النمو دون تعقيد تقني.'
                   : 'Transform your data into actionable insights with lightning-fast AI analytics. Make smarter decisions and drive growth without technical complexity.'}
@@ -53,16 +53,23 @@ const Hero = () => {
                 size="lg"
                 variant="hero"
                 className="text-base sm:text-lg px-8 h-12 sm:h-14"
-                onClick={() => navigate(user ? '/booking' : '/contact')}
+                onClick={() => navigate(user ? '/booking' : '/login')}
               >
-                {language === 'ar' ? 'احصل على استشارة مجانية' : 'Get Free Consultation'}
+                {language === 'ar' ? 'احصل على استشارة مجانية' : 'Get Started'}
                 <ArrowRight className="w-5 h-5" />
               </Button>
               <Button 
                 size="lg"
                 variant="outline"
                 className="text-base sm:text-lg px-8 h-12 sm:h-14"
-                onClick={() => navigate('/services')}
+                onClick={() => {
+                  const servicesSection = document.getElementById('services');
+                  if (servicesSection) {
+                    servicesSection.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    navigate('/services');
+                  }
+                }}
               >
                 {language === 'ar' ? 'تعرف على المزيد' : 'Learn More'}
               </Button>
@@ -83,8 +90,8 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Right: Dashboard Preview */}
-          <div className="relative animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          {/* Right: Dashboard Preview - Hidden on mobile for better UX */}
+          <div className="relative animate-fade-in-up hidden lg:block" style={{ animationDelay: '0.2s' }}>
             <div className="relative rounded-2xl overflow-hidden shadow-card border border-border/50 bg-card">
               <img 
                 src={dashboardHero} 

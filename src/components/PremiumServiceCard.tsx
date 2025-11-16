@@ -58,6 +58,11 @@ export const PremiumServiceCard = ({
           src={image_url || fallbackImage} 
           alt={serviceName}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.onerror = null;
+            target.src = fallbackImage;
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent"></div>
         
