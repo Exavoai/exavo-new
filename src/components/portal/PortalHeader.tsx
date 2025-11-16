@@ -22,15 +22,15 @@ export function PortalHeader() {
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
 
   return (
-    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
-      {/* Left: Logo & Greeting */}
-      <div className="flex items-center gap-6">
-        <img src={exavoLogo} alt="Exavo AI" className="h-8" />
+    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 md:px-6">
+      {/* Left: Greeting with small logo */}
+      <div className="flex items-center gap-3">
+        <img src={exavoLogo} alt="Exavo AI" className="h-6 hidden sm:block" />
         <div>
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-base md:text-lg font-semibold">
             Hello, {firstName}! 👋
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground hidden sm:block">
             Welcome to your AI workspace
           </p>
         </div>

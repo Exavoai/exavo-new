@@ -33,7 +33,7 @@ const CTA = () => {
               variant="secondary" 
               size="lg"
               className="shadow-glow hover:shadow-glow-lg hover:scale-105 transition-all text-base sm:text-lg px-8 h-12 sm:h-14"
-              onClick={() => navigate('/contact')}
+              onClick={() => navigate('/login')}
             >
               {language === 'ar' ? 'ابدأ الآن' : 'Get Started Now'}
               <ArrowRight className="w-5 h-5" />

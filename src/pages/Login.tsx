@@ -29,14 +29,29 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+      
       toast.success(t('auth.loginSuccess'));
-      // Navigation will be handled by the useEffect above
+      
+      // Fetch user role immediately
+      if (data.user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
+        
+        const role = roleData?.role || 'client';
+        const targetPath = role === 'admin' ? '/admin' : '/client';
+        
+        // Force immediate navigation
+        navigate(targetPath, { replace: true });
+      }
     } catch (error: any) {
       toast.error(error.message || t('auth.loginError'));
       setLoading(false);
