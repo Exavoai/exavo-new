@@ -3,47 +3,49 @@ import { PortalLayout } from "@/components/portal/PortalLayout";
 import DashboardPage from "./portal/Dashboard";
 import ClientsPage from "./portal/crm/Clients";
 import LeadsPage from "./portal/crm/Leads";
+import ConversationsPage from "./portal/Conversations";
 import SubscriptionsPage from "./portal/Subscriptions";
 import TicketsPage from "./portal/Tickets";
 import OrdersPage from "./portal/Orders";
 import AIToolsPage from "./portal/AITools";
 import TeamPage from "./portal/Team";
 import SettingsPage from "./portal/Settings";
-
-// Placeholder components for routes that weren't fully built yet
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="space-y-6">
-    <div>
-      <h1 className="text-3xl font-bold">{title}</h1>
-      <p className="text-muted-foreground">This page is under construction</p>
-    </div>
-  </div>
-);
+import MyServicesPage from "./portal/MyServices";
+import ActiveToolsPage from "./portal/ActiveTools";
+import PurchaseHistoryPage from "./portal/PurchaseHistory";
+import AutomationsPage from "./portal/Automations";
+import WorkflowsPage from "./portal/Workflows";
+import FormsPage from "./portal/Forms";
+import InvoicesPage from "./portal/Invoices";
+import ProposalsPage from "./portal/Proposals";
+import IntegrationsPage from "./portal/Integrations";
+import FilesPage from "./portal/Files";
+import WorkspaceConfigPage from "./portal/WorkspaceConfig";
 
 const ClientDashboard = () => {
   return (
     <PortalLayout>
       <Routes>
         <Route index element={<DashboardPage />} />
-        <Route path="my-services" element={<PlaceholderPage title="My Services" />} />
-        <Route path="active-tools" element={<PlaceholderPage title="Active Tools" />} />
-        <Route path="purchase-history" element={<PlaceholderPage title="Purchase History" />} />
+        <Route path="my-services" element={<MyServicesPage />} />
+        <Route path="active-tools" element={<ActiveToolsPage />} />
+        <Route path="purchase-history" element={<PurchaseHistoryPage />} />
         <Route path="ai-tools" element={<AIToolsPage />} />
-        <Route path="automations" element={<PlaceholderPage title="Automations" />} />
-        <Route path="workflows" element={<PlaceholderPage title="Workflows" />} />
+        <Route path="automations" element={<AutomationsPage />} />
+        <Route path="workflows" element={<WorkflowsPage />} />
         <Route path="crm/leads" element={<LeadsPage />} />
         <Route path="crm/clients" element={<ClientsPage />} />
-        <Route path="crm/conversations" element={<PlaceholderPage title="Conversations" />} />
+        <Route path="crm/conversations" element={<ConversationsPage />} />
         <Route path="orders" element={<OrdersPage />} />
-        <Route path="forms" element={<PlaceholderPage title="Forms" />} />
+        <Route path="forms" element={<FormsPage />} />
         <Route path="subscriptions" element={<SubscriptionsPage />} />
-        <Route path="invoices" element={<PlaceholderPage title="Invoices" />} />
-        <Route path="proposals" element={<PlaceholderPage title="Proposals" />} />
+        <Route path="invoices" element={<InvoicesPage />} />
+        <Route path="proposals" element={<ProposalsPage />} />
         <Route path="tickets" element={<TicketsPage />} />
         <Route path="team" element={<TeamPage />} />
-        <Route path="integrations" element={<PlaceholderPage title="Integrations" />} />
-        <Route path="files" element={<PlaceholderPage title="Files" />} />
-        <Route path="workspace-config" element={<PlaceholderPage title="Workspace Config" />} />
+        <Route path="integrations" element={<IntegrationsPage />} />
+        <Route path="files" element={<FilesPage />} />
+        <Route path="workspace-config" element={<WorkspaceConfigPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/client" replace />} />
       </Routes>

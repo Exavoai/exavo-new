@@ -1,4 +1,4 @@
-import { Bell, Globe, User, LogOut, Settings as SettingsIcon, CreditCard } from "lucide-react";
+import { Globe, User, LogOut, Settings as SettingsIcon, CreditCard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { NotificationsDropdown } from "./NotificationsDropdown";
+import exavoLogo from "@/assets/exavo-logo.png";
 
 export function PortalHeader() {
   const { user, signOut } = useAuth();
@@ -22,25 +23,23 @@ export function PortalHeader() {
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
-      {/* Left: Greeting */}
-      <div>
-        <h2 className="text-lg font-semibold">
-          Hello, {firstName}! 👋
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          Welcome to your AI workspace
-        </p>
+      {/* Left: Logo & Greeting */}
+      <div className="flex items-center gap-6">
+        <img src={exavoLogo} alt="Exavo AI" className="h-8" />
+        <div>
+          <h2 className="text-lg font-semibold">
+            Hello, {firstName}! 👋
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Welcome to your AI workspace
+          </p>
+        </div>
       </div>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-4">
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5" />
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-            3
-          </Badge>
-        </Button>
+        <NotificationsDropdown />
 
         {/* Language Switcher */}
         <DropdownMenu>
