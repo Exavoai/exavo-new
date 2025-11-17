@@ -68,6 +68,7 @@ const BookingDialog = ({ open, onOpenChange, serviceName, serviceId }: BookingDi
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            service: serviceName,
             fullName,
             email,
             phone,
