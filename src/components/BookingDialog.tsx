@@ -60,6 +60,27 @@ const BookingDialog = ({ open, onOpenChange, serviceName, serviceId }: BookingDi
 
       if (appointmentError) throw appointmentError;
 
+      // Send data to Make.com webhook
+      try {
+        await fetch('https://hook.eu1.make.com/z385g1oxhxswpc23sf5jt43fkp7zvndn', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fullName,
+            email,
+            phone,
+            appointmentDate: format(date, 'yyyy-MM-dd'),
+            appointmentTime: time,
+            additionalNotes: notes || ''
+          })
+        });
+      } catch (webhookError) {
+        console.error('Webhook error:', webhookError);
+        // Don't fail the booking if webhook fails
+      }
+
       // Send notification emails
       await supabase.functions.invoke('send-booking-notification', {
         body: {
