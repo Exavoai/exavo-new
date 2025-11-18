@@ -1,4 +1,4 @@
-import { Globe, User, LogOut, Settings as SettingsIcon, CreditCard, Sun, Moon, Menu } from "lucide-react";
+import { User, LogOut, Settings as SettingsIcon, CreditCard, Sun, Moon, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/hooks/useTheme";
@@ -22,7 +22,6 @@ interface PortalHeaderProps {
 
 export function PortalHeader({ isMobile, onMenuToggle }: PortalHeaderProps) {
   const { user, signOut } = useAuth();
-  const { language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -69,23 +68,6 @@ export function PortalHeader({ isMobile, onMenuToggle }: PortalHeaderProps) {
         >
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </Button>
-
-        {/* Language Switcher */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Globe className="w-5 h-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setLanguage("en")}>
-              🇬🇧 English
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setLanguage("ar")}>
-              🇸🇦 العربية
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
 
         {/* Profile Dropdown */}
         <DropdownMenu>
