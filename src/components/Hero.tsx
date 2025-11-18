@@ -90,7 +90,7 @@ const Hero = () => {
         </div>
 
         {/* Dashboard Preview - Hidden on mobile, centered below on desktop */}
-        <div className="relative animate-fade-in-up hidden lg:block mt-16 max-w-5xl mx-auto" style={{ animationDelay: '0.2s' }}>
+        <div className="relative animate-fade-in-up hidden lg:block mt-16 max-w-4xl mx-auto" style={{ animationDelay: '0.2s' }}>
           <div className="relative rounded-2xl overflow-hidden shadow-card border border-border/50 bg-card">
             <img 
               src={dashboardHero} 
