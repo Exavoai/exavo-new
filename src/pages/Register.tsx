@@ -45,17 +45,12 @@ const Register = () => {
 
       if (error) throw error;
 
-      toast.success(t('auth.registerSuccess'));
+      toast.success("Account created! Please check your email to verify your account.");
       
-      // Auto-login after successful registration
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (signInError) {
+      // Redirect to login instead of auto-login
+      setTimeout(() => {
         navigate('/login');
-      }
+      }, 2000);
     } catch (error: any) {
       toast.error(error.message || t('auth.registerError'));
     } finally {
