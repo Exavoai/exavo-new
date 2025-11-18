@@ -6,14 +6,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, Globe } from 'lucide-react';
+import { Loader2, Mail, Lock } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { t, language, setLanguage } = useLanguage();
+  const { t } = useLanguage();
   const { user, userRole } = useAuth();
 
   useEffect(() => {
@@ -58,23 +58,11 @@ const Login = () => {
     }
   };
 
-  const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'ar' : 'en');
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5"></div>
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
-      
-      {/* Language Toggle */}
-      <div className="absolute top-4 right-4 z-20">
-        <Button variant="ghost" size="sm" onClick={toggleLanguage} className="gap-2">
-          <Globe className="w-4 h-4" />
-          {language === 'en' ? 'AR' : 'EN'}
-        </Button>
-      </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-md mx-auto">
