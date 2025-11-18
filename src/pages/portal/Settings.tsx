@@ -3,13 +3,49 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || "");
   const [email] = useState(user?.email || "");
+  const [isResending, setIsResending] = useState(false);
+
+  const handleResendVerification = async () => {
+    if (!user?.email) return;
+    
+    setIsResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/client`
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Verification email sent",
+        description: "Please check your inbox and spam folder.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend verification email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -42,7 +78,31 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" value={email} disabled />
+                <div className="flex gap-2">
+                  <Input id="email" value={email} disabled className="flex-1" />
+                  {user?.email_confirmed_at ? (
+                    <Badge variant="default" className="flex items-center gap-1 self-center">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Verified
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive" className="flex items-center gap-1 self-center">
+                      <XCircle className="w-3 h-3" />
+                      Unverified
+                    </Badge>
+                  )}
+                </div>
+                {!user?.email_confirmed_at && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResendVerification}
+                    disabled={isResending}
+                    className="mt-2"
+                  >
+                    {isResending ? "Sending..." : "Resend verification email"}
+                  </Button>
+                )}
               </div>
               <Button>Save Changes</Button>
             </CardContent>
