@@ -36,15 +36,10 @@ export function PortalLayout({ children }: PortalLayoutProps) {
       )}
       
       <div className="flex-1 flex flex-col overflow-hidden w-full">
-        <div className="border-b border-border bg-background">
-          <div className="flex items-center justify-between px-4 py-2">
-            <PortalHeader 
-              isMobile={isMobile}
-              onMenuToggle={() => setMobileOpen(!mobileOpen)}
-            />
-            <ThemeToggle />
-          </div>
-        </div>
+        <PortalHeader 
+          isMobile={isMobile}
+          onMenuToggle={() => setMobileOpen(!mobileOpen)}
+        />
         
         <main className="flex-1 overflow-y-auto">
           <div className="w-full max-w-[1600px] mx-auto p-3 sm:p-4 md:p-6 lg:p-8">
