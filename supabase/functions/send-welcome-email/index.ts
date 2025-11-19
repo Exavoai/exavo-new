@@ -89,7 +89,7 @@ serve(async (req) => {
                 </div>
 
                 <div class="cta-container">
-                  <a href="${Deno.env.get("VITE_SUPABASE_URL") || "http://localhost:5173"}/register" class="button">Create Your Account Now →</a>
+                  <a href="https://exavo.ai/register" class="button">Create Your Account Now →</a>
                 </div>
 
                 <p class="message">
