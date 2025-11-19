@@ -90,10 +90,9 @@ export function AdminHeader({ isMobile, onMenuToggle }: AdminHeaderProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 relative shrink-0"
+          className="h-9 w-9 shrink-0"
         >
           <Bell className="h-4 w-4" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-destructive rounded-full"></span>
         </Button>
 
         {/* Theme Toggle */}
