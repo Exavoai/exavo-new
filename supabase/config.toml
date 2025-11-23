@@ -33,6 +33,9 @@ verify_jwt = true
 [functions.create-billing-portal]
 verify_jwt = true
 
+[functions.check-team-limits]
+verify_jwt = true
+
 [functions.get-invoices]
 [functions.admin-create-service]
 verify_jwt = true

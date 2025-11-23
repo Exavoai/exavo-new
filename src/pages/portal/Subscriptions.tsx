@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, CreditCard, RefreshCw, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar, CreditCard, RefreshCw, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { StatusBadge } from "@/components/portal/StatusBadge";
 import { useNavigate } from "react-router-dom";
+import { useTeam } from "@/contexts/TeamContext";
 
 interface Subscription {
   id: string;
@@ -32,6 +34,7 @@ export default function SubscriptionsPage() {
   const [loadingInvoices, setLoadingInvoices] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { canManageBilling, currentUserRole, isAdmin } = useTeam();
 
   const fetchSubscriptions = async () => {
     try {
@@ -108,8 +111,20 @@ export default function SubscriptionsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Subscriptions</h1>
-        <p className="text-muted-foreground">Manage your active subscriptions</p>
+        <p className="text-muted-foreground">
+          Manage your active subscriptions {currentUserRole && `(Your role: ${currentUserRole})`}
+        </p>
       </div>
+
+      {!canManageBilling && (
+        <Alert>
+          <Lock className="h-4 w-4" />
+          <AlertDescription>
+            Only workspace administrators can manage subscriptions and billing.
+            {isAdmin ? "" : " Contact your workspace admin if you need to make changes."}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-12">
@@ -151,11 +166,21 @@ export default function SubscriptionsPage() {
                   </div>
                 </div>
                 <div className="space-y-2 pt-4 border-t">
-                  <Button variant="outline" className="w-full" onClick={handleManageBilling}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={handleManageBilling}
+                    disabled={!canManageBilling}
+                  >
                     <CreditCard className="w-4 h-4 mr-2" />
                     Manage Billing
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={handleManageBilling}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={handleManageBilling}
+                    disabled={!canManageBilling}
+                  >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Change Plan
                   </Button>
