@@ -1,0 +1,110 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { token, fullName } = await req.json();
+
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Token is required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    console.log("[ACCEPT-INVITE] Accepting invitation with token:", token);
+
+    // Create service role client to bypass RLS
+    const supabaseServiceClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // First, validate that the token is still valid
+    const { data: member, error: fetchError } = await supabaseServiceClient
+      .from("team_members")
+      .select("id, email, status, token_expires_at")
+      .eq("invite_token", token)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("[ACCEPT-INVITE] Database error:", fetchError);
+      return new Response(
+        JSON.stringify({ error: "Database error", details: fetchError.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
+    if (!member) {
+      console.log("[ACCEPT-INVITE] No invitation found");
+      return new Response(
+        JSON.stringify({ error: "Invalid invitation token" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Check if already activated
+    if (member.status === "active") {
+      console.log("[ACCEPT-INVITE] Already activated");
+      return new Response(
+        JSON.stringify({ error: "This invitation has already been accepted" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Check if expired
+    if (member.token_expires_at && new Date(member.token_expires_at) < new Date()) {
+      console.log("[ACCEPT-INVITE] Token expired");
+      return new Response(
+        JSON.stringify({ error: "This invitation has expired" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Update team member to active
+    const updateData: any = {
+      status: "active",
+      activated_at: new Date().toISOString(),
+      invite_token: null,
+    };
+
+    if (fullName) {
+      updateData.full_name = fullName;
+    }
+
+    const { error: updateError } = await supabaseServiceClient
+      .from("team_members")
+      .update(updateData)
+      .eq("id", member.id);
+
+    if (updateError) {
+      console.error("[ACCEPT-INVITE] Update error:", updateError);
+      return new Response(
+        JSON.stringify({ error: "Failed to activate invitation", details: updateError.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
+    console.log("[ACCEPT-INVITE] ✓ Invitation activated successfully for:", member.email);
+
+    return new Response(
+      JSON.stringify({ success: true, message: "Invitation accepted successfully" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    );
+  } catch (error) {
+    console.error("[ACCEPT-INVITE] Error:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
+  }
+});
