@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,8 @@ interface Booking {
   appointment_time: string;
   status: string;
   notes: string | null;
+  project_progress: number;
+  project_status: string;
 }
 
 interface EditBookingDialogProps {
@@ -59,6 +62,8 @@ export function EditBookingDialog({
           appointment_time: formData.appointment_time,
           status: formData.status,
           notes: formData.notes,
+          project_progress: formData.project_progress,
+          project_status: formData.project_status,
         })
         .eq("id", formData.id);
 
@@ -188,6 +193,48 @@ export function EditBookingDialog({
               }
               rows={3}
             />
+          </div>
+
+          <div className="space-y-4 border-t pt-4">
+            <h3 className="font-semibold">Project Progress</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="project_status">Project Status</Label>
+              <Select
+                value={formData?.project_status || "not_started"}
+                onValueChange={(value) =>
+                  setFormData({ ...formData!, project_status: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="not_started">Not Started</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="review">Review</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="on_hold">On Hold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="project_progress">
+                Project Completion: {formData?.project_progress || 0}%
+              </Label>
+              <Slider
+                id="project_progress"
+                value={[formData?.project_progress || 0]}
+                onValueChange={(value) =>
+                  setFormData({ ...formData!, project_progress: value[0] })
+                }
+                min={0}
+                max={100}
+                step={5}
+                className="w-full"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-2">
