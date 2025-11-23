@@ -21,6 +21,12 @@ verify_jwt = true
 [functions.invite-team-member]
 verify_jwt = true
 
+[functions.validate-invite]
+verify_jwt = false
+
+[functions.accept-invite]
+verify_jwt = false
+
 [functions.update-team-member]
 verify_jwt = true
 

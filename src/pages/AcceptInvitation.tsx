@@ -44,39 +44,34 @@ export default function AcceptInvitation() {
     try {
       console.log("[ACCEPT-INVITE] Validating token:", token);
       
-      const { data: member, error: fetchError } = await supabase
-        .from("team_members")
-        .select("id, email, role, organization_id, status, token_expires_at")
-        .eq("invite_token", token)
-        .maybeSingle();
+      // Call the validate-invite edge function (uses service role to bypass RLS)
+      const { data: validationResponse, error: functionError } = await supabase.functions.invoke(
+        `validate-invite?token=${encodeURIComponent(token)}`,
+        {
+          method: "GET",
+        }
+      );
 
-      if (fetchError || !member) {
-        console.error("[ACCEPT-INVITE] Invalid token:", fetchError);
-        setError("Invalid or expired invitation link.");
+      if (functionError) {
+        console.error("[ACCEPT-INVITE] Function error:", functionError);
+        setError("Failed to validate invitation. Please try again.");
         setValidating(false);
         setLoading(false);
         return;
       }
 
-      // Check if token is expired
-      if (member.token_expires_at && new Date(member.token_expires_at) < new Date()) {
-        console.log("[ACCEPT-INVITE] Token expired:", member.token_expires_at);
-        setError("This invitation link has expired. Please request a new invitation.");
+      // Check validation result
+      if (!validationResponse.valid) {
+        console.log("[ACCEPT-INVITE] Invalid token:", validationResponse.error);
+        setError(validationResponse.error || "Invalid or expired invitation link.");
         setValidating(false);
         setLoading(false);
         return;
       }
 
-      // Check if already activated
-      if (member.status === "active") {
-        console.log("[ACCEPT-INVITE] Already activated");
-        setError("This invitation has already been accepted.");
-        setValidating(false);
-        setLoading(false);
-        return;
-      }
-
+      const member = validationResponse.data;
       console.log("[ACCEPT-INVITE] Valid invitation for:", member.email);
+      
       setInviteData({
         email: member.email,
         role: member.role,
@@ -129,25 +124,22 @@ export default function AcceptInvitation() {
   };
 
   const activateAndRedirect = async () => {
-    if (!inviteData) return;
+    if (!inviteData || !token) return;
     
     try {
       console.log("[ACCEPT-INVITE] Activating invitation:", inviteData.id);
       
-      // Update team member status to active
-      const { error: updateError } = await supabase
-        .from("team_members")
-        .update({
-          status: "active",
-          activated_at: new Date().toISOString(),
-          invite_token: null,
-          full_name: fullName || undefined,
-        })
-        .eq("id", inviteData.id);
+      // Call accept-invite edge function to update status
+      const { data, error: functionError } = await supabase.functions.invoke(
+        "accept-invite",
+        {
+          body: { token, fullName },
+        }
+      );
 
-      if (updateError) {
-        console.error("[ACCEPT-INVITE] Activation error:", updateError);
-        throw updateError;
+      if (functionError || !data?.success) {
+        console.error("[ACCEPT-INVITE] Activation error:", functionError || data);
+        throw new Error(data?.error || functionError?.message || "Failed to activate invitation");
       }
 
       console.log("[ACCEPT-INVITE] ✓ Invitation activated successfully");
@@ -161,7 +153,7 @@ export default function AcceptInvitation() {
       setTimeout(() => navigate("/client/dashboard"), 1500);
     } catch (err: any) {
       console.error("[ACCEPT-INVITE] Activation failed:", err);
-      toast.error("Failed to activate your account. Please contact support.");
+      toast.error(err.message || "Failed to activate your account. Please contact support.");
     }
   };
 
@@ -217,10 +209,12 @@ export default function AcceptInvitation() {
       console.log("[ACCEPT-INVITE] ✓ User created:", authData.user?.id);
 
       // Update team member with full name
-      const { error: nameUpdateError } = await supabase
-        .from("team_members")
-        .update({ full_name: fullName })
-        .eq("id", inviteData.id);
+      const { data: updateData, error: nameUpdateError } = await supabase.functions.invoke(
+        "accept-invite",
+        {
+          body: { token, fullName },
+        }
+      );
 
       if (nameUpdateError) {
         console.warn("[ACCEPT-INVITE] Failed to update name:", nameUpdateError);
