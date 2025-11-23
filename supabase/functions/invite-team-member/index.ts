@@ -9,7 +9,14 @@ const corsHeaders = {
 const sendInvitationEmail = async (to: string, role: string, inviterEmail: string, inviteToken: string) => {
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
   
+  if (!RESEND_API_KEY) {
+    console.error("[INVITE-EMAIL] RESEND_API_KEY not configured");
+    return { success: false, error: "Email service not configured" };
+  }
+  
   try {
+    console.log(`[INVITE-EMAIL] Sending invitation to ${to} with role ${role}`);
+    
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -17,8 +24,8 @@ const sendInvitationEmail = async (to: string, role: string, inviterEmail: strin
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Exavo AI <info@exavo.ai>",
-        reply_to: "info@exavo.ai",
+        from: "Exavo AI <info@exavoai.io>",
+        reply_to: "info@exavoai.io",
         to: [to],
         subject: "You've been invited to join Exavo AI",
         html: `
@@ -103,15 +110,16 @@ const sendInvitationEmail = async (to: string, role: string, inviterEmail: strin
 
     if (!emailResponse.ok) {
       const errorData = await emailResponse.json();
-      console.error(`Resend API error (status ${emailResponse.status}):`, errorData);
-      throw new Error(`Resend API error: ${JSON.stringify(errorData)}`);
+      const errorDetail = JSON.stringify(errorData);
+      console.error(`[INVITE-EMAIL] Resend API error (status ${emailResponse.status}):`, errorDetail);
+      throw new Error(`Resend API error (${emailResponse.status}): ${errorData.message || errorDetail}`);
     }
 
     const result = await emailResponse.json();
-    console.log(`Invitation email sent to ${to}:`, result);
+    console.log(`[INVITE-EMAIL] ✓ Invitation email sent successfully to ${to}. Email ID:`, result.id);
     return { success: true, data: result };
   } catch (error: any) {
-    console.error(`Failed to send invitation email to ${to}:`, error);
+    console.error(`[INVITE-EMAIL] Failed to send invitation email to ${to}:`, error.message);
     return { success: false, error: error.message };
   }
 };
@@ -221,7 +229,7 @@ serve(async (req) => {
     }
 
     // Send invitation email with token
-    console.log(`Team member invited: ${email} with role ${role}`);
+    console.log(`[INVITE] Team member created: ${email} with role ${role}. Sending email...`);
     
     const emailResult = await sendInvitationEmail(
       email, 
@@ -231,13 +239,15 @@ serve(async (req) => {
     );
     
     if (!emailResult.success) {
-      console.error(`Warning: Team member created but email failed: ${emailResult.error}`);
+      console.error(`[INVITE] Email failed for ${email}:`, emailResult.error);
+      
+      // Return error response with detailed info
       return new Response(
         JSON.stringify({ 
-          success: true, 
-          member, 
-          warning: "Team member invited but email notification failed to send. Please contact them directly.",
-          emailError: emailResult.error 
+          error: "email_failed",
+          message: `Team member created but invitation email could not be sent: ${emailResult.error}`,
+          details: emailResult.error,
+          member
         }), 
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -246,7 +256,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Invitation email sent successfully to ${email}`);
+    console.log(`[INVITE] ✓ Invitation complete for ${email}`);
     return new Response(JSON.stringify({ success: true, member }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
