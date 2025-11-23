@@ -1,7 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
-import { Calendar, Clock, Mail, Phone, User, FileText } from "lucide-react";
+import { Calendar, Clock, Mail, Phone, User, FileText, TrendingUp } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -12,6 +13,8 @@ interface Booking {
   appointment_time: string;
   status: string;
   notes: string | null;
+  project_progress: number;
+  project_status: string;
   created_at: string;
 }
 
@@ -123,6 +126,35 @@ export function ViewBookingDialog({
               </p>
             </div>
           )}
+
+          <div className="border-t pt-6 space-y-4">
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <TrendingUp className="h-5 w-5" />
+              <span>Project Progress</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">Project Status</div>
+                <Badge variant="outline" className="capitalize">
+                  {booking.project_status?.replace("_", " ") || "Not Started"}
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground">Completion</div>
+                <div className="flex items-center gap-3">
+                  <Progress 
+                    value={booking.project_progress || 0} 
+                    className="h-2 flex-1"
+                  />
+                  <span className="font-medium text-sm">
+                    {booking.project_progress || 0}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -46,6 +46,8 @@ interface Booking {
   status: string;
   service_id: string | null;
   notes: string | null;
+  project_progress: number;
+  project_status: string;
   created_at: string;
 }
 
@@ -157,6 +159,31 @@ export default function Bookings() {
     }
   };
 
+  const handleProjectStatusChange = async (bookingId: string, newProjectStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ project_status: newProjectStatus })
+        .eq("id", bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Project status updated successfully",
+      });
+
+      loadBookings();
+    } catch (error) {
+      console.error("Error updating project status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update project status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getProgressValue = (status: string) => {
     switch (status.toLowerCase()) {
       case "pending":
@@ -181,6 +208,23 @@ export default function Bookings() {
       case "completed":
         return "hsl(142, 76%, 36%)"; // green
       case "cancelled":
+        return "hsl(0, 84%, 60%)"; // red
+      default:
+        return "hsl(var(--muted))";
+    }
+  };
+
+  const getProjectStatusColor = (projectStatus: string) => {
+    switch (projectStatus) {
+      case "not_started":
+        return "hsl(var(--muted))";
+      case "in_progress":
+        return "hsl(217, 91%, 60%)"; // blue
+      case "review":
+        return "hsl(45, 93%, 47%)"; // yellow
+      case "completed":
+        return "hsl(142, 76%, 36%)"; // green
+      case "on_hold":
         return "hsl(0, 84%, 60%)"; // red
       default:
         return "hsl(var(--muted))";
@@ -272,8 +316,10 @@ export default function Bookings() {
                   <TableHead className="hidden md:table-cell">Email</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="hidden lg:table-cell">Time</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden xl:table-cell">Progress</TableHead>
+                  <TableHead>Booking Status</TableHead>
+                  <TableHead className="hidden xl:table-cell">Booking Progress</TableHead>
+                  <TableHead>Project Status</TableHead>
+                  <TableHead className="hidden 2xl:table-cell">Project Progress</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -342,6 +388,60 @@ export default function Bookings() {
                           />
                           <span className="text-xs text-muted-foreground whitespace-nowrap">
                             {getProgressValue(booking.status)}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={booking.project_status || "not_started"}
+                          onValueChange={(value) => handleProjectStatusChange(booking.id, value)}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="not_started">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-muted" />
+                                Not Started
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="in_progress">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                In Progress
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="review">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                                Review
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="completed">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-green-500" />
+                                Completed
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="on_hold">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-red-500" />
+                                On Hold
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="hidden 2xl:table-cell">
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <Progress 
+                            value={booking.project_progress || 0} 
+                            className="h-2"
+                            style={{ '--progress-background': getProjectStatusColor(booking.project_status) } as any}
+                          />
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {booking.project_progress || 0}%
                           </span>
                         </div>
                       </TableCell>

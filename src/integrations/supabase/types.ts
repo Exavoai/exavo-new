@@ -54,6 +54,8 @@ export type Database = {
           id: string
           notes: string | null
           phone: string
+          project_progress: number | null
+          project_status: string | null
           service_id: string | null
           status: string
           updated_at: string
@@ -68,6 +70,8 @@ export type Database = {
           id?: string
           notes?: string | null
           phone: string
+          project_progress?: number | null
+          project_status?: string | null
           service_id?: string | null
           status?: string
           updated_at?: string
@@ -82,6 +86,8 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string
+          project_progress?: number | null
+          project_status?: string | null
           service_id?: string | null
           status?: string
           updated_at?: string
