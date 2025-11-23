@@ -61,7 +61,9 @@ serve(async (req) => {
           planName: price.nickname || "Standard",
           price: `$${(price.unit_amount! / 100).toFixed(2)}/${price.recurring?.interval || "month"}`,
           status: sub.status === "active" ? "Active" : sub.status === "canceled" ? "Canceled" : "Expiring Soon",
-          nextBilling: new Date(sub.current_period_end * 1000).toISOString().split("T")[0],
+          nextBilling: sub.current_period_end 
+            ? new Date(sub.current_period_end * 1000).toISOString().split("T")[0]
+            : "N/A",
           currency: price.currency.toUpperCase(),
         };
       })
