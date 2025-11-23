@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,6 +39,69 @@ serve(async (req) => {
   try {
     const { email, full_name } = await req.json();
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email address" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Create Supabase admin client
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    // Check if user already exists
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const userExists = existingUsers?.users?.some(u => u.email === email);
+
+    if (userExists) {
+      return new Response(
+        JSON.stringify({ error: "User with this email already exists" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 409 }
+      );
+    }
+
+    // Create user with auto-confirmed email
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: {
+        full_name: full_name || "",
+      },
+    });
+
+    if (createError) {
+      console.error("Error creating user:", createError);
+      throw new Error(`Failed to create user: ${createError.message}`);
+    }
+
+    // Generate password recovery link for the new user
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: {
+        redirectTo: `${Deno.env.get("SUPABASE_URL")?.replace("/api", "")}/update-password`,
+      },
+    });
+
+    if (linkError) {
+      console.error("Error generating invite link:", linkError);
+      throw new Error(`Failed to generate invite link: ${linkError.message}`);
+    }
+
+    const inviteLink = linkData.properties.action_link;
+
+    // Send invitation email with the unique setup link
     await sendEmail(
       [email],
       "🎉 You're Invited! Join Exavo AI Today",
@@ -62,6 +126,7 @@ serve(async (req) => {
               .benefits li { margin: 10px 0; color: #4a4a4a; }
               .footer { text-align: center; padding: 25px; background: #f8f9fa; color: #666; font-size: 13px; border-top: 1px solid #e0e0e0; }
               .footer p { margin: 5px 0; }
+              .security-note { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; font-size: 14px; color: #856404; }
             </style>
           </head>
           <body>
@@ -70,12 +135,12 @@ serve(async (req) => {
                 <h1>✨ Welcome to Exavo AI</h1>
               </div>
               <div class="content">
-                <p class="greeting">Hello ${full_name},</p>
+                <p class="greeting">Hello ${full_name || 'there'},</p>
                 <p class="message">
-                  Thank you for your interest in <span class="highlight">Exavo AI</span>! We're thrilled to invite you to join our platform and discover how our cutting-edge AI solutions can transform your business.
+                  You've been invited by our team to join <span class="highlight">Exavo AI</span>! We're thrilled to have you on board and can't wait to show you how our cutting-edge AI solutions can transform your business.
                 </p>
                 <p class="message">
-                  Your journey to smarter automation and enhanced productivity starts here.
+                  Your account has been created and is ready to go. Click the button below to set your password and complete your registration.
                 </p>
                 
                 <div class="benefits">
@@ -89,7 +154,11 @@ serve(async (req) => {
                 </div>
 
                 <div class="cta-container">
-                  <a href="https://exavo.ai/register" class="button">Create Your Account Now →</a>
+                  <a href="${inviteLink}" class="button">Set Your Password & Get Started →</a>
+                </div>
+
+                <div class="security-note">
+                  <strong>🔒 Security Note:</strong> This link is unique to your account and will expire in 24 hours. For your security, please set a strong password when you complete your registration.
                 </div>
 
                 <p class="message">
@@ -111,14 +180,29 @@ serve(async (req) => {
       `
     );
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    console.log(`Successfully sent invitation to ${email}`);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: `Invitation sent to ${email}`,
+        user_id: newUser.user.id 
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    console.error("Error in send-welcome-email:", error);
+    return new Response(
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
+    );
   }
 });

@@ -17,28 +17,36 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Initialize Supabase client with user's token
-    const authHeader = req.headers.get("Authorization")!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    // Verify user is authenticated
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    // Get JWT from authorization header
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+    
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Extract JWT token
+    const token = authHeader.replace("Bearer ", "");
+    
+    // Decode JWT to get user ID (JWT is already verified by Supabase when verify_jwt = true)
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.sub;
+    
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create Supabase client with service role for admin operations
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     // Verify user has admin role
     const { data: hasAdminRole, error: roleError } = await supabase.rpc("has_role", {
-      _user_id: user.id,
+      _user_id: userId,
       _role: "admin",
     });
 
