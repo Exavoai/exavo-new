@@ -3,13 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Download, Search, Filter, X, CalendarIcon } from "lucide-react";
+import { Download, Search, Filter, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -28,7 +22,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 
 interface Payment {
   id: string;
@@ -45,8 +38,6 @@ export default function Payments() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -128,8 +119,6 @@ export default function Payments() {
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
-    setStartDate(undefined);
-    setEndDate(undefined);
   };
 
   const filteredPayments = payments.filter((payment) => {
@@ -141,12 +130,7 @@ export default function Payments() {
     // Status filter
     const matchesStatus = statusFilter === "all" || payment.status.toLowerCase() === statusFilter;
 
-    // Date filter
-    const paymentDate = new Date(payment.created_at);
-    const matchesStartDate = !startDate || paymentDate >= startDate;
-    const matchesEndDate = !endDate || paymentDate <= new Date(endDate.getTime() + 86400000); // Add 1 day
-
-    return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
+    return matchesSearch && matchesStatus;
   });
 
   if (loading) {
@@ -164,7 +148,7 @@ export default function Payments() {
     .filter((p) => p.status === "completed")
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
-  const hasActiveFilters = searchTerm || statusFilter !== "all" || startDate || endDate;
+  const hasActiveFilters = searchTerm || statusFilter !== "all";
 
   return (
     <div className="space-y-6">
@@ -207,56 +191,6 @@ export default function Payments() {
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* Start Date Picker */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full sm:w-[180px] justify-start text-left font-normal",
-                    !startDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, "MMM d, yyyy") : "Start date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={setStartDate}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-
-            {/* End Date Picker */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full sm:w-[180px] justify-start text-left font-normal",
-                    !endDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {endDate ? format(endDate, "MMM d, yyyy") : "End date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={endDate}
-                  onSelect={setEndDate}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
 
             {/* Clear Filters */}
             {hasActiveFilters && (
