@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from 'https://esm.sh/stripe@14.21.0';
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import Stripe from 'https://esm.sh/stripe@18.5.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,10 +14,10 @@ serve(async (req) => {
 
   try {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
+      apiVersion: '2025-08-27.basil',
     });
 
-    const { appointmentId, amount, currency = 'EGP' } = await req.json();
+    const { appointmentId, amount, currency = 'EGP', priceId, mode = 'payment' } = await req.json();
 
     // Get user from auth
     const authHeader = req.headers.get('Authorization')!;
@@ -30,6 +30,49 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
       throw new Error('Unauthorized');
+    }
+
+    console.log(`Creating ${mode} checkout for user ${user.email}`);
+
+    // Check if customer exists
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    let customerId;
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+      console.log(`Found existing customer: ${customerId}`);
+    }
+
+    // Handle subscription checkout
+    if (mode === 'subscription' && priceId) {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${req.headers.get('origin')}/client/subscriptions?success=true`,
+        cancel_url: `${req.headers.get('origin')}/client/subscriptions?canceled=true`,
+        metadata: {
+          user_id: user.id,
+          user_email: user.email,
+        },
+      });
+
+      console.log(`Subscription checkout session created: ${session.id}`);
+
+      return new Response(
+        JSON.stringify({ sessionId: session.id, url: session.url }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle payment checkout (existing logic)
+    if (!appointmentId || !amount) {
+      throw new Error('Appointment ID and amount are required for payment mode');
     }
 
     // Get appointment details

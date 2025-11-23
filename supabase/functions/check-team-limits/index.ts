@@ -9,17 +9,17 @@ const corsHeaders = {
 
 // Plan limits configuration
 const PLAN_LIMITS = {
-  "prod_starter": {
+  "prod_TTapRptmEkLouu": {
     name: "Starter",
     maxTeamMembers: 1, // Owner only
     teamEnabled: false,
   },
-  "prod_pro": {
+  "prod_TTapq8rgy3dmHT": {
     name: "Pro",
     maxTeamMembers: 5,
     teamEnabled: true,
   },
-  "prod_enterprise": {
+  "prod_TTapwaC6qD21xi": {
     name: "Enterprise",
     maxTeamMembers: 999, // Effectively unlimited
     teamEnabled: true,
