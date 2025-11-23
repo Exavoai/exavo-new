@@ -119,12 +119,12 @@ export default function TeamPage() {
 
       if (error) throw error;
 
-      // Check if there was a warning about email delivery
-      if (data?.warning) {
+      // Check for email sending failures
+      if (data?.error === "email_failed") {
         toast({
-          title: "Warning",
-          description: data.warning,
-          variant: "default",
+          title: "Email Sending Failed",
+          description: `Team member added but could not send invitation email. Error: ${data.details || "Unknown error"}`,
+          variant: "destructive",
         });
       } else {
         toast({
