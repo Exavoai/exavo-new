@@ -17,8 +17,8 @@ const sendInvitationEmail = async (to: string, role: string, inviterEmail: strin
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "info@exavo.ai",
-        reply_to: "info@exavo.ai",
+        from: "info@exavoai.io",
+        reply_to: "info@exavoai.io",
         to: [to],
         subject: "You've been invited to join a team on Exavo",
         html: `
@@ -41,7 +41,7 @@ const sendInvitationEmail = async (to: string, role: string, inviterEmail: strin
                   To accept this invitation and get started, please create your account or log in at:
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://exavo.ai/register" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; font-size: 16px;">Accept Invitation</a>
+                  <a href="https://exavoai.io/register" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; font-size: 16px;">Accept Invitation</a>
                 </div>
                 <p style="font-size: 14px; color: #666; margin-top: 30px;">
                   If you didn't expect this invitation, you can safely ignore this email.
@@ -49,7 +49,7 @@ const sendInvitationEmail = async (to: string, role: string, inviterEmail: strin
                 <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
                 <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
                   Exavo - AI-Powered Business Solutions<br>
-                  <a href="https://exavo.ai" style="color: #667eea; text-decoration: none;">exavo.ai</a>
+                  <a href="https://exavoai.io" style="color: #667eea; text-decoration: none;">exavoai.io</a>
                 </p>
               </div>
             </body>
@@ -60,7 +60,7 @@ const sendInvitationEmail = async (to: string, role: string, inviterEmail: strin
 
     if (!emailResponse.ok) {
       const errorData = await emailResponse.json();
-      console.error(`Resend API error:`, errorData);
+      console.error(`Resend API error (status ${emailResponse.status}):`, errorData);
       throw new Error(`Resend API error: ${JSON.stringify(errorData)}`);
     }
 
