@@ -139,34 +139,31 @@ serve(async (req) => {
       throw new Error("Unauthorized - No authorization header");
     }
 
-    console.log("[INVITE] Auth header present, validating user...");
+    console.log("[INVITE] Auth header present, creating authenticated client...");
     
-    // Extract JWT token from Authorization header
-    const jwt = authHeader.replace("Bearer ", "");
-    
-    // Create client for auth verification
-    const supabaseAuth = createClient(
+    // Create an authenticated client that will use the user's JWT for all operations
+    const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: authHeader }
+        }
+      }
     );
 
-    // Verify the JWT by passing it directly to getUser
-    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(jwt);
+    // Verify authentication by getting the user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
 
-    if (userError) {
+    if (userError || !user) {
       console.error("[INVITE] Auth error:", userError);
       throw new Error("Unauthorized - Invalid token");
     }
 
-    if (!user) {
-      console.error("[INVITE] No user found");
-      throw new Error("Unauthorized - User not found");
-    }
-
     console.log("[INVITE] ✓ User authenticated:", user.email);
 
-    // Create client with service role for database operations (bypasses RLS)
-    const supabaseClient = createClient(
+    // Create service role client for privileged database operations (bypasses RLS)
+    const supabaseServiceClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
@@ -208,7 +205,7 @@ serve(async (req) => {
     }
 
     // Check if member already exists
-    const { data: existing, error: existingError } = await supabaseClient
+    const { data: existing, error: existingError } = await supabaseServiceClient
       .from("team_members")
       .select("id")
       .eq("organization_id", user.id)
@@ -231,7 +228,7 @@ serve(async (req) => {
     tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7); // Token expires in 7 days
 
     // Create team member
-    const { data: member, error: insertError } = await supabaseClient
+    const { data: member, error: insertError } = await supabaseServiceClient
       .from("team_members")
       .insert({
         organization_id: user.id,
