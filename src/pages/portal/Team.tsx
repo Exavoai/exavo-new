@@ -70,10 +70,19 @@ export default function TeamPage() {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Team member invited successfully",
-      });
+      // Check if there was a warning about email delivery
+      if (data?.warning) {
+        toast({
+          title: "Warning",
+          description: data.warning,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Team member invited and email sent successfully",
+        });
+      }
 
       setInviteOpen(false);
       setInviteEmail("");
