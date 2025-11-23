@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, Mail, Palette, Zap, Bell, Save, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, Zap, Bell, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -100,18 +100,10 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-2">
           <TabsTrigger value="general" className="text-xs sm:text-sm">
             <SettingsIcon className="h-4 w-4 mr-2 hidden sm:inline" />
             General
-          </TabsTrigger>
-          <TabsTrigger value="branding" className="text-xs sm:text-sm">
-            <Palette className="h-4 w-4 mr-2 hidden sm:inline" />
-            Branding
-          </TabsTrigger>
-          <TabsTrigger value="email" className="text-xs sm:text-sm">
-            <Mail className="h-4 w-4 mr-2 hidden sm:inline" />
-            Email
           </TabsTrigger>
           <TabsTrigger value="features" className="text-xs sm:text-sm">
             <Zap className="h-4 w-4 mr-2 hidden sm:inline" />
@@ -138,6 +130,9 @@ export default function Settings() {
                   onChange={(e) => updateSetting('site_name', e.target.value)}
                   placeholder="Exavo AI"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Displayed in navigation and page titles
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="siteDescription">Site Description</Label>
@@ -146,7 +141,11 @@ export default function Settings() {
                   value={settings.site_description || ''}
                   onChange={(e) => updateSetting('site_description', e.target.value)}
                   placeholder="AI-powered business solutions..."
+                  rows={3}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Used for SEO meta descriptions
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="contactEmail">Contact Email</Label>
@@ -157,26 +156,25 @@ export default function Settings() {
                   onChange={(e) => updateSetting('contact_email', e.target.value)}
                   placeholder="contact@exavo.ai"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Primary email for contact forms and support
+                </p>
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="maintenance"
-                  checked={settings.maintenance_mode === 'true'}
-                  onCheckedChange={(checked) => updateSetting('maintenance_mode', checked.toString())}
-                />
-                <Label htmlFor="maintenance">Maintenance Mode</Label>
-              </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <Label htmlFor="registration">User Registration</Label>
+                  <p className="text-sm text-muted-foreground">Allow new users to create accounts</p>
+                </div>
                 <Switch
                   id="registration"
                   checked={settings.allow_registration === 'true'}
                   onCheckedChange={(checked) => updateSetting('allow_registration', checked.toString())}
                 />
-                <Label htmlFor="registration">Allow User Registration</Label>
               </div>
               <Button
-                onClick={() => saveSettings(['site_name', 'site_description', 'contact_email', 'maintenance_mode', 'allow_registration'])}
+                onClick={() => saveSettings(['site_name', 'site_description', 'contact_email', 'allow_registration'])}
                 disabled={saving}
+                className="w-full sm:w-auto"
               >
                 {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Changes
@@ -185,157 +183,6 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="branding" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Branding</CardTitle>
-              <CardDescription>Customize your platform's appearance</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="logo">Logo URL</Label>
-                <Input
-                  id="logo"
-                  value={settings.logo_url || ''}
-                  onChange={(e) => updateSetting('logo_url', e.target.value)}
-                  placeholder="https://example.com/logo.png"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter the URL of your logo image
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="favicon">Favicon URL</Label>
-                <Input
-                  id="favicon"
-                  value={settings.favicon_url || ''}
-                  onChange={(e) => updateSetting('favicon_url', e.target.value)}
-                  placeholder="https://example.com/favicon.ico"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter the URL of your favicon
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="primaryColor">Primary Brand Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="primaryColor"
-                    type="color"
-                    className="w-20"
-                    value={settings.primary_color || '#8B5CF6'}
-                    onChange={(e) => updateSetting('primary_color', e.target.value)}
-                  />
-                  <Input
-                    value={settings.primary_color || '#8B5CF6'}
-                    onChange={(e) => updateSetting('primary_color', e.target.value)}
-                    placeholder="#8B5CF6"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="secondaryColor">Secondary Brand Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="secondaryColor"
-                    type="color"
-                    className="w-20"
-                    value={settings.secondary_color || '#7C3AED'}
-                    onChange={(e) => updateSetting('secondary_color', e.target.value)}
-                  />
-                  <Input
-                    value={settings.secondary_color || '#7C3AED'}
-                    onChange={(e) => updateSetting('secondary_color', e.target.value)}
-                    placeholder="#7C3AED"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="heroTitle">Hero Section Title</Label>
-                <Input
-                  id="heroTitle"
-                  value={settings.hero_title || ''}
-                  onChange={(e) => updateSetting('hero_title', e.target.value)}
-                  placeholder="Transform Your Business with AI"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="heroSubtitle">Hero Section Subtitle</Label>
-                <Input
-                  id="heroSubtitle"
-                  value={settings.hero_subtitle || ''}
-                  onChange={(e) => updateSetting('hero_subtitle', e.target.value)}
-                  placeholder="Unlock the power of artificial intelligence"
-                />
-              </div>
-              <Button
-                onClick={() => saveSettings(['logo_url', 'favicon_url', 'primary_color', 'secondary_color', 'hero_title', 'hero_subtitle'])}
-                disabled={saving}
-              >
-                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="email" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Configuration</CardTitle>
-              <CardDescription>Configure SMTP settings for sending emails</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="smtpHost">SMTP Host</Label>
-                <Input
-                  id="smtpHost"
-                  value={settings.smtp_host || ''}
-                  onChange={(e) => updateSetting('smtp_host', e.target.value)}
-                  placeholder="smtp.gmail.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="smtpPort">SMTP Port</Label>
-                <Input
-                  id="smtpPort"
-                  value={settings.smtp_port || ''}
-                  onChange={(e) => updateSetting('smtp_port', e.target.value)}
-                  placeholder="587"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="smtpUser">SMTP Username</Label>
-                <Input
-                  id="smtpUser"
-                  value={settings.smtp_user || ''}
-                  onChange={(e) => updateSetting('smtp_user', e.target.value)}
-                  placeholder="your@email.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="smtpPass">SMTP Password</Label>
-                <Input
-                  id="smtpPass"
-                  type="password"
-                  value={settings.smtp_password || ''}
-                  onChange={(e) => updateSetting('smtp_password', e.target.value)}
-                  placeholder="••••••••"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Your SMTP password is encrypted and secure
-                </p>
-              </div>
-              <Button
-                onClick={() => saveSettings(['smtp_host', 'smtp_port', 'smtp_user', 'smtp_password'])}
-                disabled={saving}
-              >
-                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                Save Changes
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="features" className="space-y-4">
           <Card>
@@ -343,11 +190,11 @@ export default function Settings() {
               <CardTitle>Feature Toggles</CardTitle>
               <CardDescription>Enable or disable platform features</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label htmlFor="bookings">Online Bookings</Label>
-                  <p className="text-sm text-muted-foreground">Allow users to book services</p>
+                  <Label htmlFor="bookings" className="cursor-pointer">Online Bookings</Label>
+                  <p className="text-sm text-muted-foreground">Allow users to book services online</p>
                 </div>
                 <Switch
                   id="bookings"
@@ -355,9 +202,9 @@ export default function Settings() {
                   onCheckedChange={(checked) => updateSetting('feature_bookings', checked.toString())}
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label htmlFor="payments">Online Payments</Label>
+                  <Label htmlFor="payments" className="cursor-pointer">Online Payments</Label>
                   <p className="text-sm text-muted-foreground">Enable payment processing</p>
                 </div>
                 <Switch
@@ -366,9 +213,9 @@ export default function Settings() {
                   onCheckedChange={(checked) => updateSetting('feature_payments', checked.toString())}
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label htmlFor="chatbot">AI Chatbot</Label>
+                  <Label htmlFor="chatbot" className="cursor-pointer">AI Chatbot</Label>
                   <p className="text-sm text-muted-foreground">Enable AI-powered chat support</p>
                 </div>
                 <Switch
@@ -377,10 +224,10 @@ export default function Settings() {
                   onCheckedChange={(checked) => updateSetting('feature_chatbot', checked.toString())}
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label htmlFor="tickets">Support Tickets</Label>
-                  <p className="text-sm text-muted-foreground">Enable ticket system</p>
+                  <Label htmlFor="tickets" className="cursor-pointer">Support Tickets</Label>
+                  <p className="text-sm text-muted-foreground">Enable ticket system for support</p>
                 </div>
                 <Switch
                   id="tickets"
@@ -391,6 +238,7 @@ export default function Settings() {
               <Button
                 onClick={() => saveSettings(['feature_bookings', 'feature_payments', 'feature_chatbot', 'feature_tickets'])}
                 disabled={saving}
+                className="w-full sm:w-auto"
               >
                 {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Changes
@@ -402,14 +250,14 @@ export default function Settings() {
         <TabsContent value="notifications" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>Configure notification preferences</CardDescription>
+              <CardTitle>Admin Notifications</CardTitle>
+              <CardDescription>Configure admin notification preferences</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label htmlFor="newUsers">New User Registrations</Label>
-                  <p className="text-sm text-muted-foreground">Notify on new user signups</p>
+                  <Label htmlFor="newUsers" className="cursor-pointer">New User Registrations</Label>
+                  <p className="text-sm text-muted-foreground">Get notified when users sign up</p>
                 </div>
                 <Switch
                   id="newUsers"
@@ -417,10 +265,10 @@ export default function Settings() {
                   onCheckedChange={(checked) => updateSetting('notify_new_users', checked.toString())}
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label htmlFor="newBookings">New Bookings</Label>
-                  <p className="text-sm text-muted-foreground">Notify on new bookings</p>
+                  <Label htmlFor="newBookings" className="cursor-pointer">New Bookings</Label>
+                  <p className="text-sm text-muted-foreground">Get notified for new bookings</p>
                 </div>
                 <Switch
                   id="newBookings"
@@ -428,10 +276,10 @@ export default function Settings() {
                   onCheckedChange={(checked) => updateSetting('notify_new_bookings', checked.toString())}
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label htmlFor="newPayments">New Payments</Label>
-                  <p className="text-sm text-muted-foreground">Notify on successful payments</p>
+                  <Label htmlFor="newPayments" className="cursor-pointer">New Payments</Label>
+                  <p className="text-sm text-muted-foreground">Get notified for successful payments</p>
                 </div>
                 <Switch
                   id="newPayments"
@@ -439,10 +287,10 @@ export default function Settings() {
                   onCheckedChange={(checked) => updateSetting('notify_new_payments', checked.toString())}
                 />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label htmlFor="newTickets">New Support Tickets</Label>
-                  <p className="text-sm text-muted-foreground">Notify on new tickets</p>
+                  <Label htmlFor="newTickets" className="cursor-pointer">New Support Tickets</Label>
+                  <p className="text-sm text-muted-foreground">Get notified for new support tickets</p>
                 </div>
                 <Switch
                   id="newTickets"
@@ -453,6 +301,7 @@ export default function Settings() {
               <Button
                 onClick={() => saveSettings(['notify_new_users', 'notify_new_bookings', 'notify_new_payments', 'notify_new_tickets'])}
                 disabled={saving}
+                className="w-full sm:w-auto"
               >
                 {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Changes
