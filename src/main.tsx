@@ -6,6 +6,7 @@ import "./index.css";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
+import { TeamProvider } from "./contexts/TeamContext";
 
 // Initialize theme on load
 const initTheme = () => {
@@ -28,7 +29,9 @@ createRoot(document.getElementById("root")!).render(
       <LanguageProvider>
         <SettingsProvider>
           <AuthProvider>
-            <App />
+            <TeamProvider>
+              <App />
+            </TeamProvider>
           </AuthProvider>
         </SettingsProvider>
       </LanguageProvider>

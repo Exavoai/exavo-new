@@ -3,12 +3,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Plus, Shield, Search, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Mail, Plus, Shield, Search, Loader2, Crown, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/portal/StatusBadge";
+import { useTeam } from "@/contexts/TeamContext";
 
 interface TeamMember {
   id: string;
@@ -16,6 +19,15 @@ interface TeamMember {
   full_name: string | null;
   role: string;
   status: 'active' | 'pending' | 'inactive';
+}
+
+interface TeamLimits {
+  currentCount: number;
+  maxTeamMembers: number;
+  teamEnabled: boolean;
+  canInvite: boolean;
+  limitReached: boolean;
+  planName: string;
 }
 
 export default function TeamPage() {
@@ -28,7 +40,11 @@ export default function TeamPage() {
   const [inviteRole, setInviteRole] = useState("Member");
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [teamLimits, setTeamLimits] = useState<TeamLimits | null>(null);
+  const [limitsLoading, setLimitsLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { canInviteMembers, canManageTeam, isAdmin, currentUserRole } = useTeam();
 
   const fetchMembers = async () => {
     try {
@@ -51,9 +67,42 @@ export default function TeamPage() {
     }
   };
 
+  const fetchTeamLimits = async () => {
+    try {
+      setLimitsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke("check-team-limits", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+
+      if (error) throw error;
+      setTeamLimits(data);
+    } catch (error: any) {
+      console.error("Error fetching team limits:", error);
+      // Set default limits on error
+      setTeamLimits({
+        currentCount: members.length,
+        maxTeamMembers: 1,
+        teamEnabled: false,
+        canInvite: false,
+        limitReached: true,
+        planName: "Free",
+      });
+    } finally {
+      setLimitsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchMembers();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      fetchTeamLimits();
+    }
+  }, [loading, members.length]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,15 +225,18 @@ export default function TeamPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Team Members</h1>
-          <p className="text-muted-foreground">Manage your team and permissions</p>
+          <p className="text-muted-foreground">
+            Manage your team and permissions {currentUserRole && `(Your role: ${currentUserRole})`}
+          </p>
         </div>
-        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Invite Member
-            </Button>
-          </DialogTrigger>
+        {canInviteMembers && (
+          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+            <DialogTrigger asChild>
+              <Button disabled={!teamLimits?.canInvite || limitsLoading}>
+                <Plus className="w-4 h-4 mr-2" />
+                Invite Member
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Invite Team Member</DialogTitle>
@@ -225,7 +277,44 @@ export default function TeamPage() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
+
+      {teamLimits && !teamLimits.teamEnabled && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Team features are not available on your <strong>{teamLimits.planName}</strong> plan. 
+            {" "}
+            <Button
+              variant="link"
+              className="p-0 h-auto font-semibold"
+              onClick={() => navigate("/client/subscriptions")}
+            >
+              Upgrade your plan
+            </Button>
+            {" "}to invite team members.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {teamLimits && teamLimits.teamEnabled && teamLimits.limitReached && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Your <strong>{teamLimits.planName}</strong> plan allows up to {teamLimits.maxTeamMembers} team member{teamLimits.maxTeamMembers !== 1 ? "s" : ""}.
+            {" "}
+            <Button
+              variant="link"
+              className="p-0 h-auto font-semibold"
+              onClick={() => navigate("/client/subscriptions")}
+            >
+              Upgrade your plan
+            </Button>
+            {" "}to add more members.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>
@@ -273,16 +362,18 @@ export default function TeamPage() {
                       <span className="text-sm font-medium">{member.role}</span>
                     </div>
                     <StatusBadge status={member.status === "active" ? "Active" : "Pending"} />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedMember(member);
-                        setManageOpen(true);
-                      }}
-                    >
-                      Manage
-                    </Button>
+                    {canManageTeam && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedMember(member);
+                          setManageOpen(true);
+                        }}
+                      >
+                        Manage
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

@@ -153,6 +153,31 @@ serve(async (req) => {
       throw new Error("Invalid role");
     }
 
+    // Check team limits before creating invitation
+    const limitsCheckUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/check-team-limits`;
+    const limitsResponse = await fetch(limitsCheckUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!limitsResponse.ok) {
+      throw new Error("Failed to check team limits");
+    }
+
+    const limitsData = await limitsResponse.json();
+    console.log("Team limits check:", limitsData);
+
+    if (!limitsData.teamEnabled) {
+      throw new Error("Team features are not available on your current plan. Please upgrade to invite team members.");
+    }
+
+    if (limitsData.limitReached || !limitsData.canInvite) {
+      throw new Error(`Your ${limitsData.planName} plan allows up to ${limitsData.maxTeamMembers} team members. Please upgrade your plan to add more members.`);
+    }
+
     // Check if member already exists
     const { data: existing, error: existingError } = await supabaseClient
       .from("team_members")
