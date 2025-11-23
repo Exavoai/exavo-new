@@ -45,23 +45,27 @@ serve(async (req) => {
     // Get all subscriptions for this customer
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      expand: ["data.items.data.price.product"],
+      expand: ["data.items"],
     });
 
-    const formattedSubscriptions = subscriptions.data.map((sub: Stripe.Subscription) => {
-      const price = sub.items.data[0].price;
-      const product = price.product as Stripe.Product;
-      
-      return {
-        id: sub.id,
-        productName: product.name,
-        planName: price.nickname || "Standard",
-        price: `$${(price.unit_amount! / 100).toFixed(2)}/${price.recurring?.interval || "month"}`,
-        status: sub.status === "active" ? "Active" : sub.status === "canceled" ? "Canceled" : "Expiring Soon",
-        nextBilling: new Date(sub.current_period_end * 1000).toISOString().split("T")[0],
-        currency: price.currency.toUpperCase(),
-      };
-    });
+    // Fetch product details separately to avoid deep expansion
+    const formattedSubscriptions = await Promise.all(
+      subscriptions.data.map(async (sub: Stripe.Subscription) => {
+        const price = sub.items.data[0].price;
+        const productId = typeof price.product === 'string' ? price.product : price.product.id;
+        const product = await stripe.products.retrieve(productId);
+        
+        return {
+          id: sub.id,
+          productName: product.name,
+          planName: price.nickname || "Standard",
+          price: `$${(price.unit_amount! / 100).toFixed(2)}/${price.recurring?.interval || "month"}`,
+          status: sub.status === "active" ? "Active" : sub.status === "canceled" ? "Canceled" : "Expiring Soon",
+          nextBilling: new Date(sub.current_period_end * 1000).toISOString().split("T")[0],
+          currency: price.currency.toUpperCase(),
+        };
+      })
+    );
 
     return new Response(JSON.stringify({ subscriptions: formattedSubscriptions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
