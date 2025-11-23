@@ -32,6 +32,7 @@ interface Plan {
   name: string;
   price: string;
   priceId: string;
+  productId: string;
   features: string[];
   teamMembers: number;
   teamEnabled: boolean;
@@ -42,7 +43,8 @@ const AVAILABLE_PLANS: Plan[] = [
     id: "starter",
     name: "Starter",
     price: "$29",
-    priceId: "price_starter",
+    priceId: "price_1SWde1QqlubRO0xEoGU02LU3",
+    productId: "prod_TTapRptmEkLouu",
     features: [
       "Basic AI tools access",
       "1 team member (you)",
@@ -56,7 +58,8 @@ const AVAILABLE_PLANS: Plan[] = [
     id: "pro",
     name: "Pro",
     price: "$99",
-    priceId: "price_pro",
+    priceId: "price_1SWde9QqlubRO0xEZz1QHJhH",
+    productId: "prod_TTapq8rgy3dmHT",
     features: [
       "Full AI tools suite",
       "Up to 5 team members",
@@ -71,7 +74,8 @@ const AVAILABLE_PLANS: Plan[] = [
     id: "enterprise",
     name: "Enterprise",
     price: "$299",
-    priceId: "price_enterprise",
+    priceId: "price_1SWdeAQqlubRO0xE8nmhqQNF",
+    productId: "prod_TTapwaC6qD21xi",
     features: [
       "Unlimited AI tools",
       "Unlimited team members",
@@ -90,11 +94,11 @@ export default function SubscriptionsPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingInvoices, setLoadingInvoices] = useState(true);
-  const [currentPlanId, setCurrentPlanId] = useState<string>("starter");
+  const [currentProductId, setCurrentProductId] = useState<string>("");
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { canManageBilling, currentUserRole, isAdmin } = useTeam();
+  const { canManageBilling, currentUserRole, isAdmin, refreshTeam } = useTeam();
 
   const fetchSubscriptions = async () => {
     try {
@@ -107,6 +111,16 @@ export default function SubscriptionsPage() {
 
       if (error) throw error;
       setSubscriptions(data?.subscriptions || []);
+      
+      // Get current product ID from check-team-limits
+      const { data: limitsData, error: limitsError } = await supabase.functions.invoke("check-team-limits", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      
+      if (!limitsError && limitsData?.productId) {
+        setCurrentProductId(limitsData.productId);
+        console.log("Current product ID:", limitsData.productId);
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -143,6 +157,26 @@ export default function SubscriptionsPage() {
   useEffect(() => {
     fetchSubscriptions();
     fetchInvoices();
+    
+    // Check for success/cancel params from Stripe redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("success") === "true") {
+      toast({
+        title: "Success!",
+        description: "Your subscription has been updated. Team features are now available.",
+      });
+      // Refresh team data to get new limits
+      refreshTeam();
+      // Clean up URL
+      window.history.replaceState({}, "", "/client/subscriptions");
+    } else if (urlParams.get("canceled") === "true") {
+      toast({
+        title: "Checkout canceled",
+        description: "You can upgrade anytime from this page.",
+      });
+      // Clean up URL
+      window.history.replaceState({}, "", "/client/subscriptions");
+    }
   }, []);
 
   const handleManageBilling = async () => {
@@ -180,25 +214,35 @@ export default function SubscriptionsPage() {
     try {
       setUpgradingPlan(planId);
       
-      // For now, show a contact message until full billing integration
-      toast({
-        title: "Upgrade Request",
-        description: "To upgrade to this plan, please contact us at info@exavo.ai or use the Manage Billing portal.",
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { 
+          priceId,
+          mode: "subscription"
+        },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       
-      // TODO: Implement full checkout flow
-      // const { data: { session } } = await supabase.auth.getSession();
-      // const { data, error } = await supabase.functions.invoke("create-checkout", {
-      //   body: { priceId },
-      //   headers: { Authorization: `Bearer ${session?.access_token}` },
-      // });
-      // if (error) throw error;
-      // if (data?.url) window.open(data.url, "_blank");
+      if (error) throw error;
+      
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.open(data.url, "_blank");
+        
+        toast({
+          title: "Redirecting to checkout",
+          description: "Complete your payment in the new window",
+        });
+      } else {
+        throw new Error("No checkout URL received");
+      }
       
     } catch (error: any) {
+      console.error("Upgrade error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to start checkout. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -230,9 +274,9 @@ export default function SubscriptionsPage() {
         <h2 className="text-2xl font-bold mb-4">Available Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {AVAILABLE_PLANS.map((plan) => {
-            const isCurrent = plan.id === currentPlanId;
+            const isCurrent = plan.productId === currentProductId;
             return (
-              <Card 
+              <Card
                 key={plan.id} 
                 className={`relative hover:shadow-lg transition-shadow ${
                   isCurrent ? "border-primary border-2" : ""
