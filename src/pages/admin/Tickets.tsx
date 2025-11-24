@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { Eye, MessageSquare, Trash2 } from "lucide-react";
 import { TicketReplyDialog } from "@/components/admin/TicketReplyDialog";
 import { ViewTicketDialog } from "@/components/admin/ViewTicketDialog";
-import { EditTicketDialog } from "@/components/admin/EditTicketDialog";
 import { DeleteTicketDialog } from "@/components/admin/DeleteTicketDialog";
 import {
   Table,
@@ -45,7 +44,6 @@ export default function Tickets() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -103,11 +101,6 @@ export default function Tickets() {
   const handleViewTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setViewDialogOpen(true);
-  };
-
-  const handleEditTicket = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
-    setEditDialogOpen(true);
   };
 
   const handleDeleteTicket = (ticket: Ticket) => {
@@ -284,14 +277,6 @@ export default function Tickets() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEditTicket(ticket)}
-                            title="Edit ticket"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
                             onClick={() => handleReplyToTicket(ticket)}
                             title="Reply to ticket"
                           >
@@ -327,12 +312,6 @@ export default function Tickets() {
         ticket={selectedTicket}
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
-      />
-      <EditTicketDialog
-        ticket={selectedTicket}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onSuccess={loadTickets}
       />
       <DeleteTicketDialog
         ticket={selectedTicket}
