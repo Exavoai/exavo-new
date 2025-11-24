@@ -7,6 +7,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { TeamProvider } from "./contexts/TeamContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Initialize theme on load
 const initTheme = () => {
@@ -25,16 +26,18 @@ initTheme();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <LanguageProvider>
-        <SettingsProvider>
-          <AuthProvider>
-            <TeamProvider>
-              <App />
-            </TeamProvider>
-          </AuthProvider>
-        </SettingsProvider>
-      </LanguageProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <LanguageProvider>
+          <SettingsProvider>
+            <AuthProvider>
+              <TeamProvider>
+                <App />
+              </TeamProvider>
+            </AuthProvider>
+          </SettingsProvider>
+        </LanguageProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>
 );

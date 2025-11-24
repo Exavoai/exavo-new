@@ -44,7 +44,7 @@ export default function TeamPage() {
   const [limitsLoading, setLimitsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { canInviteMembers, canManageTeam, isAdmin, currentUserRole } = useTeam();
+  const { canInviteMembers, canManageTeam, isAdmin, currentUserRole, loading: teamLoading, workspaceId } = useTeam();
 
   const fetchMembers = async () => {
     try {
@@ -243,6 +243,16 @@ export default function TeamPage() {
       member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (member.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
   );
+
+  // Show loading while team context is initializing
+  if (teamLoading || !workspaceId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading workspace...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

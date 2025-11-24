@@ -38,7 +38,14 @@ export default function DashboardPage() {
   const [workspaceOwner, setWorkspaceOwner] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentUserRole, teamMembers, isWorkspaceOwner, workspaceOwnerEmail, loading: teamLoading } = useTeam();
+  const { 
+    currentUserRole, 
+    teamMembers, 
+    isWorkspaceOwner, 
+    workspaceOwnerEmail, 
+    loading: teamLoading,
+    workspaceId 
+  } = useTeam();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -91,12 +98,15 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading || teamLoading) {
+  // Show loading state while data is being fetched
+  const isLoadingData = loading || teamLoading || !workspaceId;
+  
+  if (isLoadingData) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <p className="text-muted-foreground">Loading workspace...</p>
         </div>
       </div>
     );

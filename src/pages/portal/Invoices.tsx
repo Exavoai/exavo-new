@@ -39,12 +39,12 @@ export default function InvoicesPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { canManageBilling, currentUserRole, loading: teamLoading } = useTeam();
+  const { canManageBilling, currentUserRole, loading: teamLoading, workspaceId } = useTeam();
   const { user } = useAuth();
 
   useEffect(() => {
     // Wait for team data to load before checking permissions
-    if (teamLoading) return;
+    if (teamLoading || !workspaceId) return;
     
     // Redirect non-admin users
     if (currentUserRole && !canManageBilling) {
@@ -57,7 +57,7 @@ export default function InvoicesPage() {
       return;
     }
     fetchInvoices();
-  }, [currentUserRole, canManageBilling]);
+  }, [currentUserRole, canManageBilling, teamLoading, workspaceId]);
 
   const fetchInvoices = async () => {
     try {
@@ -174,10 +174,12 @@ export default function InvoicesPage() {
     },
   ];
 
-  if (loading) {
+  // Show loading while either invoices are loading OR team context is loading
+  if (loading || teamLoading || !workspaceId) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading invoices...</span>
       </div>
     );
   }
