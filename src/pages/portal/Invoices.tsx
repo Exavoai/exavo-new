@@ -39,10 +39,13 @@ export default function InvoicesPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { canManageBilling, currentUserRole } = useTeam();
+  const { canManageBilling, currentUserRole, loading: teamLoading } = useTeam();
   const { user } = useAuth();
 
   useEffect(() => {
+    // Wait for team data to load before checking permissions
+    if (teamLoading) return;
+    
     // Redirect non-admin users
     if (currentUserRole && !canManageBilling) {
       toast({

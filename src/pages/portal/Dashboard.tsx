@@ -38,12 +38,14 @@ export default function DashboardPage() {
   const [workspaceOwner, setWorkspaceOwner] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentUserRole, teamMembers, isWorkspaceOwner, workspaceOwnerEmail } = useTeam();
+  const { currentUserRole, teamMembers, isWorkspaceOwner, workspaceOwnerEmail, loading: teamLoading } = useTeam();
   const { user } = useAuth();
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
 
   const loadDashboardData = async () => {
     try {
@@ -89,7 +91,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading) {
+  if (loading || teamLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -132,8 +134,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Workspace Info Section */}
-      {currentUserRole && (
-        <Card>
+      <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Building2 className="w-5 h-5 text-primary" />
@@ -173,10 +174,9 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-      )}
 
       {/* Only show KPIs and actions for Admin/Member */}
-      {currentUserRole !== "Viewer" && (
+      {(currentUserRole === "Admin" || currentUserRole === "Member") && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card>
             <CardHeader className="pb-3">
@@ -241,7 +241,7 @@ export default function DashboardPage() {
       )}
 
       {/* Only show recent activity for Admin/Member */}
-      {currentUserRole !== "Viewer" && (
+      {(currentUserRole === "Admin" || currentUserRole === "Member") && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <Card>
             <CardHeader>
@@ -326,7 +326,7 @@ export default function DashboardPage() {
       )}
 
       {/* Notes section for all users */}
-      {currentUserRole !== "Viewer" && (
+      {(currentUserRole === "Admin" || currentUserRole === "Member") && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl">Notes</CardTitle>
@@ -337,15 +337,12 @@ export default function DashboardPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="min-h-[150px] resize-none"
-              disabled={currentUserRole === "Viewer"}
             />
-            {currentUserRole !== "Viewer" && (
-              <div className="flex justify-end">
-                <Button size="sm" variant="outline">
-                  Save
-                </Button>
-              </div>
-            )}
+            <div className="flex justify-end">
+              <Button size="sm" variant="outline">
+                Save
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
