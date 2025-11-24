@@ -98,11 +98,11 @@ export default function SubscriptionsPage() {
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { canManageBilling, currentUserRole, isAdmin, refreshTeam, loading: teamLoading } = useTeam();
+  const { canManageBilling, currentUserRole, isAdmin, refreshTeam, loading: teamLoading, workspaceId } = useTeam();
 
   useEffect(() => {
     // Wait for team data to load before checking permissions
-    if (teamLoading) return;
+    if (teamLoading || !workspaceId) return;
     
     // Redirect non-admin users
     if (currentUserRole && !canManageBilling) {
@@ -127,7 +127,7 @@ export default function SubscriptionsPage() {
     }
     fetchSubscriptions();
     fetchInvoices();
-  }, [currentUserRole, canManageBilling]);
+  }, [currentUserRole, canManageBilling, teamLoading, workspaceId]);
 
   const fetchSubscriptions = async () => {
     try {
@@ -200,6 +200,16 @@ export default function SubscriptionsPage() {
       window.history.replaceState({}, "", "/client/subscriptions");
     }
   }, []);
+
+  // Show loading while subscriptions are loading OR team context is loading
+  if (loading || teamLoading || !workspaceId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading subscriptions...</span>
+      </div>
+    );
+  }
 
   const handleManageBilling = async () => {
     try {

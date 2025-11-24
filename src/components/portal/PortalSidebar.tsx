@@ -36,7 +36,7 @@ interface PortalSidebarProps {
 export function PortalSidebar({ collapsed, onToggle }: PortalSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUserRole, isWorkspaceOwner } = useTeam();
+  const { currentUserRole, isWorkspaceOwner, loading: teamLoading } = useTeam();
 
   const isActive = (href: string) => location.pathname === href;
 

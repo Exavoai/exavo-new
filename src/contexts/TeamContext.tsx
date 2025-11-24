@@ -112,15 +112,19 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       await fetchUserRole();
-      // Wait for role to be fetched before fetching team members
-      // This ensures organizationId is set first
-      await fetchTeamMembers();
     } catch (error) {
       console.error("Error refreshing team:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Fetch team members separately after organizationId is set
+  useEffect(() => {
+    if (organizationId && !loading) {
+      fetchTeamMembers();
+    }
+  }, [organizationId, loading]);
 
   useEffect(() => {
     refreshTeam();
@@ -160,18 +164,19 @@ export function TeamProvider({ children }: { children: ReactNode }) {
 export function useTeam() {
   const context = useContext(TeamContext);
   if (context === undefined) {
-    // Return safe defaults instead of throwing
+    // Return safe defaults for when context is not available
+    // This prevents crashes but signals loading state
     return {
-      currentUserRole: "Admin",
+      currentUserRole: null,
       teamMembers: [],
-      loading: false,
+      loading: true, // Always show loading when context is missing
       canInviteMembers: false,
-      canManageBilling: true,
+      canManageBilling: false,
       canManageTeam: false,
       isViewer: false,
       isMember: false,
-      isAdmin: true,
-      isWorkspaceOwner: true,
+      isAdmin: false,
+      isWorkspaceOwner: false,
       workspaceId: null,
       workspaceOwnerEmail: null,
       refreshTeam: async () => {},
