@@ -272,12 +272,12 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshTeam = async () => {
+    if (!user) return;
+    
     setLoading(true);
     try {
       await fetchUserRole();
-      setTimeout(() => {
-        fetchTeamMembers();
-      }, 100);
+      await fetchTeamMembers();
     } catch (error) {
       console.error("Error refreshing team:", error);
     } finally {
@@ -286,12 +286,35 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (user) {
-      refreshTeam();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+    let isMounted = true;
+
+    const loadData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        await fetchUserRole();
+        if (isMounted) {
+          await fetchTeamMembers();
+        }
+      } catch (error) {
+        console.error("Error loading team data:", error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]); // Only depend on user.id to prevent loops
 
   const canManageBilling = isWorkspaceOwner;
 

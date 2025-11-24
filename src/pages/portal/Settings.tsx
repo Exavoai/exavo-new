@@ -21,8 +21,8 @@ interface Profile {
 }
 
 export default function SettingsPage() {
-  const { user, refreshProfile } = useAuth();
-  const { isWorkspaceOwner, permissions } = useTeam();
+  const { user, refreshProfile, loading: authLoading } = useAuth();
+  const { isWorkspaceOwner, permissions, loading: teamLoading } = useTeam();
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fullName, setFullName] = useState("");
@@ -39,8 +39,10 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadProfile();
-  }, [user]);
+    if (!authLoading && !teamLoading && user) {
+      loadProfile();
+    }
+  }, [user?.id, authLoading, teamLoading]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -71,7 +73,7 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     if (!user) return;
 
-    if (!permissions.change_workspace_info) {
+    if (!isWorkspaceOwner && permissions && !permissions.change_workspace_info) {
       toast({
         title: "Permission Denied",
         description: "You don't have permission to update profile information",
@@ -198,6 +200,14 @@ export default function SettingsPage() {
       setIsUpdatingEmail(false);
     }
   };
+
+  if (authLoading || teamLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
