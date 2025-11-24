@@ -155,8 +155,9 @@ export default function DashboardPage() {
   const activeAppointments = appointments.filter(a => a.status === 'confirmed' || a.status === 'pending').length;
   const completedAppointments = appointments.filter(a => a.status === 'completed').length;
 
-  const displayRole = isWorkspaceOwner 
-    ? `${currentUserRole} (Owner)` 
+  // Display role correctly based on whether user is owner or team member
+  const displayRole = isWorkspaceOwner && currentUserRole === "Admin"
+    ? "Admin (Owner)" 
     : currentUserRole || "Member";
   
   const activeTeamMembers = teamMembers.filter(m => m.status === 'active').length;

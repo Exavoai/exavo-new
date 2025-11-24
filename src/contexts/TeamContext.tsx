@@ -49,11 +49,12 @@ export function TeamProvider({ children }: { children: ReactNode }) {
 
     try {
       // Check if user is a team member of another organization
+      // Look for both active and pending members to properly identify invited users
       const { data: memberOf } = await supabase
         .from("team_members")
-        .select("role, organization_id")
+        .select("role, organization_id, status")
         .eq("email", user.email)
-        .eq("status", "active")
+        .in("status", ["active", "pending"])
         .maybeSingle();
 
       if (memberOf) {
@@ -61,7 +62,15 @@ export function TeamProvider({ children }: { children: ReactNode }) {
         setCurrentUserRole(memberOf.role);
         setOrganizationId(memberOf.organization_id);
         setIsWorkspaceOwner(false);
-        setWorkspaceOwnerEmail(null);
+        
+        // Fetch workspace owner email
+        const { data: ownerProfile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", memberOf.organization_id)
+          .maybeSingle();
+        
+        setWorkspaceOwnerEmail(ownerProfile?.email || null);
       } else {
         // User is the workspace owner
         setCurrentUserRole("Admin");
