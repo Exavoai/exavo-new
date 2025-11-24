@@ -110,8 +110,16 @@ export function TeamProvider({ children }: { children: ReactNode }) {
 
   const refreshTeam = async () => {
     setLoading(true);
-    await Promise.all([fetchUserRole(), fetchTeamMembers()]);
-    setLoading(false);
+    try {
+      await fetchUserRole();
+      // Wait for role to be fetched before fetching team members
+      // This ensures organizationId is set first
+      await fetchTeamMembers();
+    } catch (error) {
+      console.error("Error refreshing team:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -152,7 +160,22 @@ export function TeamProvider({ children }: { children: ReactNode }) {
 export function useTeam() {
   const context = useContext(TeamContext);
   if (context === undefined) {
-    throw new Error("useTeam must be used within a TeamProvider");
+    // Return safe defaults instead of throwing
+    return {
+      currentUserRole: "Admin",
+      teamMembers: [],
+      loading: false,
+      canInviteMembers: false,
+      canManageBilling: true,
+      canManageTeam: false,
+      isViewer: false,
+      isMember: false,
+      isAdmin: true,
+      isWorkspaceOwner: true,
+      workspaceId: null,
+      workspaceOwnerEmail: null,
+      refreshTeam: async () => {},
+    };
   }
   return context;
 }

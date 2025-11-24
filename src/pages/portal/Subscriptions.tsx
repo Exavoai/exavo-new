@@ -98,9 +98,12 @@ export default function SubscriptionsPage() {
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { canManageBilling, currentUserRole, isAdmin, refreshTeam } = useTeam();
+  const { canManageBilling, currentUserRole, isAdmin, refreshTeam, loading: teamLoading } = useTeam();
 
   useEffect(() => {
+    // Wait for team data to load before checking permissions
+    if (teamLoading) return;
+    
     // Redirect non-admin users
     if (currentUserRole && !canManageBilling) {
       toast({
