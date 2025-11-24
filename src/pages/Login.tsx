@@ -32,50 +32,20 @@ const Login = () => {
     try {
       console.log("[LOGIN] Processing invitation token:", inviteToken);
       
-      // Validate the token and get invite data
-      const { data: member, error: fetchError } = await supabase
-        .from("team_members")
-        .select("id, email, status, token_expires_at")
-        .eq("invite_token", inviteToken)
-        .eq("status", "pending")
-        .maybeSingle();
+      // Call accept-invite edge function to activate (uses service role to bypass RLS)
+      const { data, error } = await supabase.functions.invoke("accept-invite", {
+        body: { token: inviteToken },
+      });
 
-      if (fetchError || !member) {
-        console.error("[LOGIN] Invalid invite token:", fetchError);
-        toast.error("Invalid or expired invitation");
-        return;
-      }
-
-      // Check if token is expired
-      if (member.token_expires_at && new Date(member.token_expires_at) < new Date()) {
-        console.log("[LOGIN] Invitation expired");
-        toast.error("This invitation has expired");
-        return;
-      }
-
-      // Check if logged-in user matches invite email
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email !== member.email) {
-        console.log("[LOGIN] Email mismatch. Expected:", member.email, "Got:", user?.email);
-        toast.error(`This invitation is for ${member.email}. Please log in with that email.`);
-        return;
-      }
-
-      console.log("[LOGIN] Activating invitation for:", member.email);
-
-      // Activate the invitation
-      const { error: updateError } = await supabase
-        .from("team_members")
-        .update({
-          status: "active",
-          activated_at: new Date().toISOString(),
-          invite_token: null,
-        })
-        .eq("id", member.id);
-
-      if (updateError) {
-        console.error("[LOGIN] Failed to activate invitation:", updateError);
+      if (error) {
+        console.error("[LOGIN] Failed to activate invitation:", error);
         toast.error("Failed to activate invitation");
+        return;
+      }
+
+      if (!data?.success) {
+        console.error("[LOGIN] Activation failed:", data?.error);
+        toast.error(data?.error || "Failed to activate invitation");
         return;
       }
 

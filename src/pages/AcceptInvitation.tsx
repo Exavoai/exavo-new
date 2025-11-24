@@ -99,23 +99,10 @@ export default function AcceptInvitation() {
           setLoading(false);
         }
       } else {
-        // Not logged in - check if user exists
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', member.email)
-          .maybeSingle();
-        
-        if (profile) {
-          // User exists, redirect to login
-          console.log("[ACCEPT-INVITE] User exists, redirecting to login");
-          navigate(`/login?inviteToken=${token}`);
-          return;
-        } else {
-          // New user - show signup form
-          console.log("[ACCEPT-INVITE] New user, showing signup form");
-          setLoading(false);
-        }
+        // Not logged in - show signup form
+        // If user already exists, the signup form will handle the error and redirect to login
+        console.log("[ACCEPT-INVITE] Not logged in, showing signup form");
+        setLoading(false);
       }
     } catch (err: any) {
       console.error("[ACCEPT-INVITE] Validation error:", err);
@@ -196,12 +183,14 @@ export default function AcceptInvitation() {
       });
 
       if (signUpError) {
-        // If user already exists, show them the login link
-        if (signUpError.message.includes("already registered") || signUpError.message.includes("User already registered")) {
+        // If user already exists, redirect to login
+        if (signUpError.message.includes("already registered") || 
+            signUpError.message.includes("User already registered") ||
+            signUpError.message.includes("already been registered")) {
           console.log("[ACCEPT-INVITE] User already exists, redirecting to login");
           toast.error("An account with this email already exists. Redirecting to login...");
           setSubmitting(false);
-          setTimeout(() => handleExistingUserLogin(), 2000);
+          setTimeout(() => navigate(`/login?inviteToken=${token}`), 2000);
           return;
         }
         console.error("[ACCEPT-INVITE] Signup error:", signUpError);
@@ -210,22 +199,30 @@ export default function AcceptInvitation() {
 
       console.log("[ACCEPT-INVITE] ✓ User created:", authData.user?.id);
 
-      // Update team member with full name
-      const { data: updateData, error: nameUpdateError } = await supabase.functions.invoke(
+      // Activate invitation using edge function
+      const { data: activateData, error: activateError } = await supabase.functions.invoke(
         "accept-invite",
         {
           body: { token, fullName },
         }
       );
 
-      if (nameUpdateError) {
-        console.warn("[ACCEPT-INVITE] Failed to update name:", nameUpdateError);
+      if (activateError || !activateData?.success) {
+        console.error("[ACCEPT-INVITE] Activation error:", activateError || activateData);
+        toast.error("Account created but failed to activate invitation. Please contact support.");
+        setSubmitting(false);
+        return;
       }
 
-      if (authData.user) {
-        // Activate team member and redirect
-        await activateAndRedirect();
-      }
+      console.log("[ACCEPT-INVITE] ✓ Invitation activated successfully");
+      
+      toast.success("Welcome to the team!", {
+        description: "Your invitation has been accepted.",
+        duration: 3000,
+      });
+
+      // Redirect after short delay
+      setTimeout(() => navigate("/client/dashboard"), 1500);
     } catch (err: any) {
       console.error("[ACCEPT-INVITE] Signup failed:", err);
       toast.error(err.message || "Failed to create account");
