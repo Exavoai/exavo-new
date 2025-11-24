@@ -85,7 +85,8 @@ export default function WorkspacePage() {
     );
   }
 
-  const displayRole = isWorkspaceOwner 
+  // Display role correctly based on whether user is owner or team member
+  const displayRole = isWorkspaceOwner && currentUserRole === "Admin"
     ? "Admin (Owner)" 
     : currentUserRole || "Member";
 
