@@ -11,17 +11,17 @@ const corsHeaders = {
 const PLAN_LIMITS = {
   "prod_TTapRptmEkLouu": {
     name: "Starter",
-    maxTeamMembers: 1, // Owner only
-    teamEnabled: false,
+    maxTeamMembers: 5,
+    teamEnabled: true,
   },
   "prod_TTapq8rgy3dmHT": {
     name: "Pro",
-    maxTeamMembers: 5,
+    maxTeamMembers: 10,
     teamEnabled: true,
   },
   "prod_TTapwaC6qD21xi": {
     name: "Enterprise",
-    maxTeamMembers: 999, // Effectively unlimited
+    maxTeamMembers: 20,
     teamEnabled: true,
   },
   // Default for users without subscription

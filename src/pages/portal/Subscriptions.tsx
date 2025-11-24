@@ -47,12 +47,12 @@ const AVAILABLE_PLANS: Plan[] = [
     productId: "prod_TTapRptmEkLouu",
     features: [
       "Basic AI tools access",
-      "1 team member (you)",
+      "Up to 5 team members",
       "Standard support",
       "5 GB storage",
     ],
-    teamMembers: 1,
-    teamEnabled: false,
+    teamMembers: 5,
+    teamEnabled: true,
   },
   {
     id: "pro",
@@ -62,12 +62,12 @@ const AVAILABLE_PLANS: Plan[] = [
     productId: "prod_TTapq8rgy3dmHT",
     features: [
       "Full AI tools suite",
-      "Up to 5 team members",
+      "Up to 10 team members",
       "Priority support",
       "50 GB storage",
       "Advanced analytics",
     ],
-    teamMembers: 5,
+    teamMembers: 10,
     teamEnabled: true,
   },
   {
@@ -77,14 +77,14 @@ const AVAILABLE_PLANS: Plan[] = [
     priceId: "price_1SWdeAQqlubRO0xE8nmhqQNF",
     productId: "prod_TTapwaC6qD21xi",
     features: [
-      "Unlimited AI tools",
-      "Unlimited team members",
+      "All Pro features",
+      "Up to 20 team members",
       "24/7 dedicated support",
       "Unlimited storage",
       "Custom integrations",
       "SLA guarantee",
     ],
-    teamMembers: 999,
+    teamMembers: 20,
     teamEnabled: true,
   },
 ];
