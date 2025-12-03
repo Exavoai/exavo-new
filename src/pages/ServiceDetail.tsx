@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BookingDialog from "@/components/BookingDialog";
 import { 
   Bot, Workflow, LineChart, Mail, FileText, BarChart3, 
-  Check, ArrowLeft, Star
+  Check, ArrowLeft, Star, Loader2
 } from "lucide-react";
 import {
   Accordion,
@@ -18,6 +18,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+interface ServicePackage {
+  id: string;
+  package_name: string;
+  description?: string;
+  price: number;
+  currency: string;
+  features: string[];
+  delivery_time?: string;
+  notes?: string;
+  package_order: number;
+}
 
 const iconMap: Record<string, any> = {
   'AI Chatbot': Bot,
@@ -33,12 +45,39 @@ const ServiceDetail = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const [service, setService] = useState<any>(null);
+  const [packages, setPackages] = useState<ServicePackage[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedPackageId, setSelectedPackageId] = useState<string>('');
+  const [selectedPackageName, setSelectedPackageName] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
       fetchService();
+      fetchPackages();
+      
+      // Subscribe to real-time package changes
+      const channel = supabase
+        .channel(`service-packages-${id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'service_packages',
+            filter: `service_id=eq.${id}`
+          },
+          () => {
+            console.log('Package change detected, refetching...');
+            fetchPackages();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [id]);
 
@@ -54,6 +93,42 @@ const ServiceDetail = () => {
       setService(data);
     }
     setLoading(false);
+  };
+
+  const fetchPackages = async () => {
+    if (!id) return;
+    
+    setPackagesLoading(true);
+    const { data, error } = await supabase
+      .from('service_packages')
+      .select('*')
+      .eq('service_id', id)
+      .order('package_order', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching packages:', error);
+    } else if (data) {
+      setPackages(data.map(pkg => ({
+        id: pkg.id,
+        package_name: pkg.package_name,
+        description: pkg.description || undefined,
+        price: pkg.price,
+        currency: pkg.currency,
+        features: Array.isArray(pkg.features) 
+          ? pkg.features.map(f => String(f)).filter(Boolean)
+          : [],
+        delivery_time: pkg.delivery_time || undefined,
+        notes: pkg.notes || undefined,
+        package_order: pkg.package_order,
+      })));
+    }
+    setPackagesLoading(false);
+  };
+
+  const handleSelectPackage = (pkg: ServicePackage) => {
+    setSelectedPackageId(pkg.id);
+    setSelectedPackageName(pkg.package_name);
+    setDialogOpen(true);
   };
 
   if (loading) {
@@ -100,38 +175,6 @@ const ServiceDetail = () => {
     { icon: Check, text: language === 'ar' ? 'تخصيص كامل' : 'Full Customization' },
     { icon: Check, text: language === 'ar' ? 'تكامل API' : 'API Integration' },
     { icon: Check, text: language === 'ar' ? 'تحديثات مجانية' : 'Free Updates' },
-  ];
-
-  const pricingTiers = [
-    {
-      name: language === 'ar' ? 'الأساسي' : 'Basic',
-      price: service.price,
-      features: [
-        language === 'ar' ? 'الميزات الأساسية' : 'Basic Features',
-        language === 'ar' ? 'دعم البريد الإلكتروني' : 'Email Support',
-        language === 'ar' ? '1 مستخدم' : '1 User',
-      ]
-    },
-    {
-      name: language === 'ar' ? 'المحترف' : 'Professional',
-      price: service.price * 2,
-      features: [
-        language === 'ar' ? 'جميع الميزات الأساسية' : 'All Basic Features',
-        language === 'ar' ? 'دعم الأولوية' : 'Priority Support',
-        language === 'ar' ? '5 مستخدمين' : '5 Users',
-        language === 'ar' ? 'تحليلات متقدمة' : 'Advanced Analytics',
-      ]
-    },
-    {
-      name: language === 'ar' ? 'المؤسسة' : 'Enterprise',
-      price: service.price * 5,
-      features: [
-        language === 'ar' ? 'جميع الميزات الاحترافية' : 'All Professional Features',
-        language === 'ar' ? 'دعم مخصص' : 'Dedicated Support',
-        language === 'ar' ? 'مستخدمين غير محدودين' : 'Unlimited Users',
-        language === 'ar' ? 'التكامل المخصص' : 'Custom Integration',
-      ]
-    },
   ];
 
   const testimonials = [
@@ -223,13 +266,6 @@ const ServiceDetail = () => {
               
               <h1 className="text-4xl font-bold mb-4">{serviceName}</h1>
               <p className="text-xl text-muted-foreground mb-6">{serviceDescription}</p>
-              
-              <div className="text-3xl font-bold text-primary mb-6">
-                ${service.price.toLocaleString()}
-                <span className="text-base text-muted-foreground font-normal">
-                  {language === 'ar' ? ' / سنويًا' : ' / year'}
-                </span>
-              </div>
 
               <Button 
                 size="lg" 
@@ -256,36 +292,65 @@ const ServiceDetail = () => {
             </div>
           </section>
 
-          {/* Pricing Tiers */}
+          {/* Dynamic Packages */}
           <section className="mb-12">
             <h2 className="text-2xl font-bold mb-6">
-              {language === 'ar' ? 'خطط التسعير' : 'Pricing Tiers'}
+              {language === 'ar' ? 'الباقات المتاحة' : 'Available Packages'}
             </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {pricingTiers.map((tier, index) => (
-                <Card key={index} className={`p-6 ${index === 1 ? 'border-primary shadow-glow' : ''}`}>
-                  <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
-                  <div className="text-3xl font-bold text-primary mb-4">
-                    ${tier.price.toLocaleString()}
-                  </div>
-                  <ul className="space-y-3 mb-6">
-                    {tier.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button 
-                    variant={index === 1 ? 'default' : 'outline'}
-                    className="w-full"
-                    onClick={() => setDialogOpen(true)}
-                  >
-                    {language === 'ar' ? 'اختر الخطة' : 'Choose Plan'}
-                  </Button>
-                </Card>
-              ))}
-            </div>
+            
+            {packagesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : packages.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                {language === 'ar' ? 'لا توجد باقات متاحة حاليًا' : 'No packages available currently'}
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-6">
+                {packages.map((pkg, index) => (
+                  <Card key={pkg.id} className={`p-6 relative ${index === 1 ? 'border-primary shadow-glow scale-105' : ''}`}>
+                    {index === 1 && (
+                      <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
+                        {language === 'ar' ? 'الأكثر شيوعًا' : 'Most Popular'}
+                      </Badge>
+                    )}
+                    <h3 className="text-xl font-bold mb-2">{pkg.package_name}</h3>
+                    {pkg.description && (
+                      <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
+                    )}
+                    <div className="text-3xl font-bold text-primary mb-4">
+                      {pkg.currency === 'USD' ? '$' : pkg.currency}{pkg.price.toLocaleString()}
+                    </div>
+                    {pkg.delivery_time && (
+                      <Badge variant="outline" className="mb-4">
+                        ⏱️ {pkg.delivery_time}
+                      </Badge>
+                    )}
+                    <ul className="space-y-3 mb-6">
+                      {pkg.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {pkg.notes && (
+                      <p className="text-xs text-muted-foreground mb-4 border-t pt-3">
+                        {pkg.notes}
+                      </p>
+                    )}
+                    <Button 
+                      variant={index === 1 ? 'default' : 'outline'}
+                      className="w-full"
+                      onClick={() => handleSelectPackage(pkg)}
+                    >
+                      {language === 'ar' ? 'اختر الباقة' : 'Select Package'}
+                    </Button>
+                  </Card>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Testimonials */}
@@ -338,6 +403,8 @@ const ServiceDetail = () => {
         onOpenChange={setDialogOpen}
         serviceName={serviceName}
         serviceId={service.id}
+        packageId={selectedPackageId}
+        packageName={selectedPackageName}
       />
     </div>
   );
