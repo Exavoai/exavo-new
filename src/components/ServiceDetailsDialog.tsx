@@ -47,6 +47,28 @@ export function ServiceDetailsDialog({
   useEffect(() => {
     if (service && open) {
       fetchPackages();
+      
+      // Subscribe to real-time changes
+      const channel = supabase
+        .channel(`packages-${service.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'service_packages',
+            filter: `service_id=eq.${service.id}`
+          },
+          () => {
+            console.log('Package change detected, refetching...');
+            fetchPackages();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [service, open]);
 
