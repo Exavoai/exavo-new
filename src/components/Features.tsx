@@ -51,14 +51,13 @@ const Features = () => {
   ];
 
   return (
-    <section className="py-24 lg:py-32 bg-background">
+    <section className="py-32 bg-background">
       <div className="container mx-auto px-6 sm:px-10 lg:px-16">
-        {/* Design System: Heading increased by 1.2x, spacing by 1.5x */}
-        <div className="text-center max-w-4xl mx-auto mb-20 animate-fade-in">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
+        <div className="text-center max-w-3xl mx-auto mb-20 animate-slide-up">
+          <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-foreground">
             {language === 'ar' ? 'خدماتنا الأساسية' : 'Our Core Services'}
           </h2>
-          <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
+          <p className="text-lg text-muted-foreground">
             {language === 'ar'
               ? 'حلول شاملة مدعومة بالذكاء الاصطناعي لتحويل أعمالك'
               : 'Comprehensive AI-powered solutions to transform your business'}
@@ -66,17 +65,17 @@ const Features = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {features.map((feature, index) => (
-            <Card 
-              key={index} 
-              className="p-8 hover:shadow-glow transition-all duration-300 hover:-translate-y-2 bg-card border-border/50 group animate-fade-in-up"
+            <div
+              key={index}
+              className="bg-white dark:bg-card rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 group animate-slide-up border border-border/50"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <div className="w-14 h-14 rounded-lg bg-gradient-hero flex items-center justify-center mb-6 group-hover:shadow-glow-lg group-hover:scale-110 transition-all duration-300">
-                <feature.icon className="w-7 h-7 text-primary-foreground" />
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors duration-300">
+                <feature.icon className="w-8 h-8 text-primary" strokeWidth={2} />
               </div>
-              <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
-            </Card>
+              <h3 className="text-xl font-semibold mb-3 text-foreground">{feature.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+            </div>
           ))}
         </div>
       </div>

@@ -11,7 +11,7 @@ const FAQ = () => {
 
   const faqs = [
     {
-      question: language === 'ar' 
+      question: language === 'ar'
         ? 'ما الذي يفعله وسيط الذكاء الاصطناعي؟'
         : 'What does an AI broker do?',
       answer: language === 'ar'
@@ -41,43 +41,53 @@ const FAQ = () => {
       answer: language === 'ar'
         ? 'نتعامل مع مجموعة واسعة من مشاريع الذكاء الاصطناعي: نماذج الذكاء الاصطناعي المخصصة، معالجة اللغات الطبيعية، رؤية الكمبيوتر، التحليلات التنبؤية، روبوتات الدردشة، أتمتة العمليات، وتكامل الذكاء الاصطناعي في الأنظمة الحالية. إذا كان يتعلق بالذكاء الاصطناعي، يمكننا مساعدتك.'
         : 'We handle a wide range of AI projects: custom AI models, natural language processing, computer vision, predictive analytics, chatbots, process automation, and AI integration into existing systems. If it involves AI, we can help you succeed.'
+    },
+    {
+      question: language === 'ar'
+        ? 'كم من الوقت يستغرق إكمال المشروع؟'
+        : 'How long does it take to complete a project?',
+      answer: language === 'ar'
+        ? 'يعتمد الإطار الزمني على نطاق المشروع وتعقيده. تستغرق المشاريع البسيطة عادةً 4-6 أسابيع، بينما قد تستغرق المشاريع الأكثر تعقيداً 3-6 أشهر. نقدم تقديراً مفصلاً للإطار الزمني بعد استشارتك الأولية.'
+        : 'The timeline depends on project scope and complexity. Simple projects typically take 4-6 weeks, while more complex implementations may take 3-6 months. We provide a detailed timeline estimate after your initial consultation.'
+    },
+    {
+      question: language === 'ar'
+        ? 'ماذا يحدث بعد إطلاق المشروع؟'
+        : 'What happens after project launch?',
+      answer: language === 'ar'
+        ? 'نقدم دعماً شاملاً بعد الإطلاق، بما في ذلك المراقبة والصيانة والتحديثات. نقدم أيضاً خطط دعم مستمرة لضمان استمرار نجاح حل الذكاء الاصطناعي الخاص بك وتطوره مع احتياجات عملك.'
+        : 'We provide comprehensive post-launch support, including monitoring, maintenance, and updates. We also offer ongoing support plans to ensure your AI solution continues to perform optimally and evolves with your business needs.'
     }
   ];
 
   return (
-    <section className="py-24 lg:py-32 relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/30"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,hsl(var(--primary)/0.08),transparent_50%)]"></div>
-
-      <div className="container mx-auto px-6 sm:px-10 lg:px-16 relative z-10">
-        {/* Section Header - Design System: Heading increased by 1.2x, spacing by 1.5x */}
-        <div className="text-center max-w-4xl mx-auto mb-20 animate-fade-in">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+    <section className="py-32 bg-muted/30">
+      <div className="container mx-auto px-6 sm:px-10 lg:px-16">
+        <div className="text-center max-w-3xl mx-auto mb-20 animate-slide-up">
+          <h2 className="text-4xl sm:text-5xl font-bold mb-6">
             {language === 'ar'
               ? 'الأسئلة الشائعة'
               : 'Frequently Asked Questions'}
           </h2>
-          <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
+          <p className="text-lg text-muted-foreground">
             {language === 'ar'
               ? 'لديك أسئلة؟ لدينا إجابات.'
               : 'Have questions? We have answers.'}
           </p>
         </div>
 
-        {/* FAQ Accordion */}
-        <div className="max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <div className="max-w-4xl mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, index) => (
-              <AccordionItem 
-                key={index} 
+              <AccordionItem
+                key={index}
                 value={`item-${index}`}
-                className="bg-card border border-border rounded-xl px-6 hover:shadow-card transition-all duration-300"
+                className="bg-white dark:bg-card border-0 rounded-2xl px-8 shadow-sm hover:shadow-lg transition-all duration-300"
               >
-                <AccordionTrigger className="text-left text-base sm:text-lg font-semibold hover:text-primary py-5">
+                <AccordionTrigger className="text-left text-lg font-semibold hover:text-primary py-6 hover:no-underline">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed pb-5 pt-2">
+                <AccordionContent className="text-muted-foreground leading-relaxed pb-6 pt-2">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
