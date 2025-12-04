@@ -51,13 +51,14 @@ const Features = () => {
   ];
 
   return (
-    <section className="py-24 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16 animate-fade-in">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+    <section className="py-24 lg:py-32 bg-background">
+      <div className="container mx-auto px-6 sm:px-10 lg:px-16">
+        {/* Design System: Heading increased by 1.2x, spacing by 1.5x */}
+        <div className="text-center max-w-4xl mx-auto mb-20 animate-fade-in">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
             {language === 'ar' ? 'خدماتنا الأساسية' : 'Our Core Services'}
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
             {language === 'ar'
               ? 'حلول شاملة مدعومة بالذكاء الاصطناعي لتحويل أعمالك'
               : 'Comprehensive AI-powered solutions to transform your business'}

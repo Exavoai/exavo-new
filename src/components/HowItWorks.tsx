@@ -40,16 +40,17 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-16 lg:py-20 bg-background relative overflow-hidden">
+    <section className="py-24 lg:py-32 bg-muted/30 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-10"></div>
-      
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-10 animate-fade-in">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+
+      <div className="container mx-auto px-6 sm:px-10 lg:px-16 relative z-10">
+        {/* Design System: Heading increased by 1.2x, spacing by 1.5x */}
+        <div className="text-center max-w-4xl mx-auto mb-20 animate-fade-in">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
             {language === 'ar' ? 'كيف نعمل' : 'How It Works'}
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
             {language === 'ar'
               ? 'عملية بسيطة ومثبتة لتحويل بياناتك إلى رؤى قابلة للتنفيذ'
               : 'A simple, proven process to transform your data into actionable insights'}

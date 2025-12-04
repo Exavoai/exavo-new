@@ -11,30 +11,32 @@ const Hero = () => {
   const { user } = useAuth();
 
   return (
-    <section className="relative overflow-hidden bg-[#f8f9fa] dark:bg-background">
-      <div className="container mx-auto px-6 sm:px-8 lg:px-12 py-20 sm:py-24 lg:py-32">
-        <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-center">
+    <section className="relative overflow-hidden bg-background">
+      {/* Design System: Increased section spacing by 1.5x */}
+      <div className="container mx-auto px-6 sm:px-10 lg:px-16 py-24 sm:py-32 lg:py-40">
+        <div className="grid lg:grid-cols-5 gap-16 lg:gap-20 items-center">
           {/* Left Column - Content (60%) */}
-          <div className="lg:col-span-3 space-y-8 animate-fade-in">
-            {/* Heading */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-foreground tracking-tight">
+          <div className="lg:col-span-3 space-y-10 animate-fade-in">
+            {/* Heading - Design System: Increased by 1.2x (4xl→5xl, 5xl→6xl, 6xl→7xl) */}
+            {/* Inter font family applied via Tailwind config */}
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[1.1] text-foreground tracking-tight">
               {language === 'ar'
                 ? 'تحليلات مدعومة بالذكاء الاصطناعي لأعمالك'
                 : 'Track time and boost productivity'}
             </h1>
 
-            {/* Subtext */}
-            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+            {/* Subtext - Design System: Neutral text color #1F2937 */}
+            <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed max-w-2xl">
               {language === 'ar'
                 ? 'حوّل بياناتك إلى رؤى قابلة للتنفيذ مع تحليلات الذكاء الاصطناعي فائقة السرعة.'
                 : 'Empower your team with automated time tracking, productivity insights, and seamless workforce management.'}
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            {/* CTA Buttons - Design System: Primary #0052CC, Secondary #1A73E8 */}
+            <div className="flex flex-col sm:flex-row gap-5 pt-2">
               <Button
                 size="lg"
-                className="text-base px-8 h-14 bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all"
+                className="text-lg px-10 h-16 bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all font-medium rounded-lg"
                 onClick={() => navigate(user ? '/booking' : '/login')}
               >
                 {language === 'ar' ? 'ابدأ مجاناً' : 'Start free trial'}
@@ -43,7 +45,7 @@ const Hero = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-base px-8 h-14 border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all"
+                className="text-lg px-10 h-16 border-2 border-border hover:border-primary/40 hover:bg-primary/5 transition-all font-medium rounded-lg"
                 onClick={() => {
                   const servicesSection = document.getElementById('services');
                   if (servicesSection) {
@@ -59,7 +61,7 @@ const Hero = () => {
             </div>
 
             {/* Trust indicators */}
-            <div className="flex flex-wrap items-center gap-6 pt-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-8 pt-4 text-base text-muted-foreground">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
